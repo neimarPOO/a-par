@@ -16,7 +16,7 @@
 
     <style>
         :root {
-            --bs-primary-rgb: 13, 110, 253; /* Exemplo de azul do Bootstrap */
+            --bs-primary-rgb: 13, 110, 253;
             --bs-body-font-family: 'Poppins', sans-serif;
             --bs-body-bg: #f8f9fa;
         }
@@ -49,13 +49,13 @@
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
         }
 
-        .btn-primary {
+        .btn-primary, .btn-secondary, .btn-danger, .btn-success {
             font-weight: 600;
             padding: 0.75rem 1.5rem;
             transition: all 0.3s ease;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover, .btn-secondary:hover, .btn-danger:hover, .btn-success:hover {
             transform: translateY(-2px);
             box-shadow: 0 0.5rem 1rem rgba(var(--bs-primary-rgb), 0.25);
         }
@@ -114,6 +114,16 @@
         }
         .footer-logo:hover {
             opacity: 1;
+        }
+
+        #recording-status span {
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
@@ -195,11 +205,22 @@
                                 <label for="participantes">Número de Participantes</label>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <label for="audio-file" class="form-label">Gravação da Aula (Áudio)</label>
-                            <input type="file" id="audio-file" accept="audio/*" class="form-control">
+                        
+                        <div class="col-12">
+                            <label class="form-label">Gravação da Aula (Áudio)</label>
+                            <div class="p-3 border rounded bg-light">
+                                <div class="d-flex flex-wrap gap-2 align-items-center">
+                                    <button id="record-btn" class="btn btn-success"><i class="bi bi-mic-fill me-2"></i>Gravar</button>
+                                    <button id="stop-btn" class="btn btn-danger" disabled><i class="bi bi-stop-circle-fill me-2"></i>Parar</button>
+                                    <div id="recording-status" class="ms-3 fw-bold"></div>
+                                </div>
+                                <hr>
+                                <label for="audio-file" class="form-label small">Ou faça o upload de um arquivo:</label>
+                                <input type="file" id="audio-file" accept="audio/*" class="form-control form-control-sm">
+                            </div>
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="col-12">
                             <label for="imagens" class="form-label">Evidências Visuais (Imagens)</label>
                             <input type="file" id="imagens" multiple accept="image/*" class="form-control"/>
                         </div>
@@ -232,13 +253,68 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // A lógica de abas agora é controlada pelos atributos data-bs-toggle do Bootstrap,
-        // então não precisamos mais do JavaScript para isso.
+        // --- Variáveis Globais --- 
+        let mediaRecorder;
+        let audioChunks = [];
+        let recordedAudioFile = null;
 
-        // --- Funcionalidade 1: Gerador de Plano de Aula (com API) ---
+        // --- Elementos do DOM ---
         const generatePlanBtn = document.getElementById('generate-plan-btn');
         const outputPlanner = document.getElementById('output-planner');
+        const generateReportBtn = document.getElementById('generate-report-btn');
+        const outputReporter = document.getElementById('output-reporter');
+        const recordBtn = document.getElementById('record-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const recordingStatus = document.getElementById('recording-status');
+        const audioFileInput = document.getElementById('audio-file');
 
+        // --- Lógica de Gravação de Áudio ---
+        recordBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    recordedAudioFile = new File([audioBlob], "recording.webm", { type: 'audio/webm' });
+                    
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const audioElement = new Audio(audioUrl);
+                    audioElement.controls = true;
+                    recordingStatus.innerHTML = ''; // Limpa status de gravação
+                    recordingStatus.appendChild(audioElement);
+                    audioChunks = []; // Limpa para a próxima gravação
+                };
+
+                audioChunks = [];
+                recordedAudioFile = null;
+                mediaRecorder.start();
+                
+                // Atualiza UI
+                recordBtn.disabled = true;
+                stopBtn.disabled = false;
+                audioFileInput.disabled = true;
+                recordingStatus.innerHTML = '<span class="text-danger">Gravando...</span>';
+
+            } catch (err) {
+                console.error("Erro ao acessar o microfone: ", err);
+                recordingStatus.innerHTML = '<span class="text-danger">Erro ao acessar microfone.</span>';
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            mediaRecorder.stop();
+            // Atualiza UI
+            recordBtn.disabled = false;
+            stopBtn.disabled = true;
+            audioFileInput.disabled = false;
+        });
+
+        // --- Funcionalidade 1: Gerador de Plano de Aula (com API) ---
         generatePlanBtn.addEventListener('click', async () => {
             const programa = document.getElementById('programa').value;
             const materiais = document.getElementById('materiais').value;
@@ -249,10 +325,9 @@
                 return;
             }
 
-            // UI feedback
             generatePlanBtn.disabled = true;
-            generatePlanBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Gerando Plano...';
-            outputPlanner.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Analisando suas informações e construindo o plano de aula... 🧠</p></div>';
+            generatePlanBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Gerando Plano...';
+            outputPlanner.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Analisando... 🧠</p></div>';
 
             try {
                 const response = await fetch('/api/generate-plan', {
@@ -260,34 +335,22 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ programa, materiais, tempo })
                 });
-
                 const resultHtml = await response.text();
-                
-                if (!response.ok) {
-                    throw new Error(resultHtml);
-                }
-
+                if (!response.ok) throw new Error(resultHtml);
                 outputPlanner.innerHTML = `<div class="output-section">${resultHtml}</div>`;
-
             } catch (error) {
-                console.error('Erro ao gerar plano de aula:', error);
-                outputPlanner.innerHTML = `<div class="output-section"><div class="alert alert-danger">${error.message || "Não foi possível conectar ao servidor."}</div></div>`;
+                outputPlanner.innerHTML = `<div class="output-section"><div class="alert alert-danger">${error.message}</div></div>`;
             } finally {
-                // Restore UI
                 generatePlanBtn.disabled = false;
                 generatePlanBtn.innerHTML = '<i class="bi bi-magic me-2"></i>Criar Plano de Aula';
             }
         });
 
         // --- Funcionalidade 2: Gerador de Relatório (com API) ---
-        const generateReportBtn = document.getElementById('generate-report-btn');
-        const outputReporter = document.getElementById('output-reporter');
-
         generateReportBtn.addEventListener('click', async () => {
             const observacoes = document.getElementById('observacoes').value;
             const infoAula = document.getElementById('info-aula').value;
             const participantes = document.getElementById('participantes').value;
-            const audioFileInput = document.getElementById('audio-file');
             const imagensInput = document.getElementById('imagens');
 
             if (!observacoes || !infoAula || !participantes) {
@@ -295,53 +358,40 @@
                 return;
             }
 
-            // UI feedback
             generateReportBtn.disabled = true;
-            generateReportBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Compilando...';
-            outputReporter.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Processando dados e transcrevendo áudio (se houver)... 🎙️</p></div>';
+            generateReportBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Compilando...';
+            outputReporter.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Processando... 🎙️</p></div>';
 
             const formData = new FormData();
             formData.append('observacoes', observacoes);
             formData.append('infoAula', infoAula);
             formData.append('participantes', participantes);
-            if (audioFileInput.files[0]) {
+            
+            // Prioriza o áudio gravado sobre o arquivo upado
+            if (recordedAudioFile) {
+                formData.append('audioFile', recordedAudioFile, 'recording.webm');
+            } else if (audioFileInput.files[0]) {
                 formData.append('audioFile', audioFileInput.files[0]);
             }
 
             try {
-                const response = await fetch('/api/generate-report', {
-                    method: 'POST',
-                    body: formData
-                });
-
+                const response = await fetch('/api/generate-report', { method: 'POST', body: formData });
                 const resultHtml = await response.text();
+                if (!response.ok) throw new Error(resultHtml);
 
-                if (!response.ok) {
-                    throw new Error(resultHtml);
-                }
-
-                // Handle images locally
                 let imagesHTML = '';
                 if (imagensInput.files.length > 0) {
                     imagesHTML = '<h3 class="mt-5">Evidências Visuais</h3><div class="row g-3">';
                     for (const file of imagensInput.files) {
                         const imageUrl = URL.createObjectURL(file);
-                        imagesHTML += `
-                            <div class="col-md-4">
-                                <img src="${imageUrl}" alt="${file.name}" class="img-fluid rounded shadow-sm">
-                            </div>
-                        `;
+                        imagesHTML += `<div class="col-md-4"><img src="${imageUrl}" class="img-fluid rounded shadow-sm"></div>`;
                     }
                     imagesHTML += '</div>';
                 }
-
                 outputReporter.innerHTML = `<div class="output-section">${resultHtml}${imagesHTML}</div>`;
-
             } catch (error) {
-                console.error('Erro ao gerar relatório:', error);
-                outputReporter.innerHTML = `<div class="output-section"><div class="alert alert-danger">${error.message || "Não foi possível conectar ao servidor."}</div></div>`;
+                outputReporter.innerHTML = `<div class="output-section"><div class="alert alert-danger">${error.message}</div></div>`;
             } finally {
-                // Restore UI
                 generateReportBtn.disabled = false;
                 generateReportBtn.innerHTML = '<i class="bi bi-file-earmark-text me-2"></i>Compilar Relatório';
             }
