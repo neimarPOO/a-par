@@ -34,7 +34,8 @@ exports.handler = async (event) => {
             messages: [
                 { role: "system", content: lessonPlanPrompt },
                 { role: "user", content: userInput }
-            ]
+            ],
+            max_tokens: 2048
         }, {
             headers: {
                 'Authorization': `Bearer ${OPENROUTER_API_KEY}`,

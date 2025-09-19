@@ -1,9 +1,8 @@
-Failed to load resource: the server responded with a status of 500 ()Entenda o erro
-(índice):273 Erro ao gerar plano de aula: Error: <p style="color: red;">Ocorreu um erro ao gerar o plano de aula.</p>
-    at HTMLButtonElement.<anonymous> ((índice):267:27)
-
-
-
-Sep 19, 03:03:42 PM: fbd47115 ERROR  Error calling OpenRouter API: { error: { message: 'User not found.', code: 401 } }Sep 19, 03:03:42 PM: fbd47115 Duration: 200.12 ms	Memory Usage: 103 MB
-
-
+Sep 19, 03:12:33 PM: a7d70a91 ERROR  Error calling OpenRouter API: {
+  error: {
+    message: 'This request requires more credits, or fewer max_tokens. You requested up to 4096 tokens, but can only afford 3424. To increase, visit https://openrouter.ai/settings/credits and upgrade to a paid account',
+    code: 402,
+    metadata: { provider_name: null }
+  },
+  user_id: 'user_2tAlzScAK8OLqbHSWM8dK1QUwJt'
+}Sep 19, 03:12:33 PM: a7d70a91 Duration: 239.32 ms	Memory Usage: 103 MB
