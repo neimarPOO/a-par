@@ -1,8 +1,5 @@
-Sep 19, 03:12:33 PM: a7d70a91 ERROR  Error calling OpenRouter API: {
-  error: {
-    message: 'This request requires more credits, or fewer max_tokens. You requested up to 4096 tokens, but can only afford 3424. To increase, visit https://openrouter.ai/settings/credits and upgrade to a paid account',
-    code: 402,
-    metadata: { provider_name: null }
-  },
-  user_id: 'user_2tAlzScAK8OLqbHSWM8dK1QUwJt'
-}Sep 19, 03:12:33 PM: a7d70a91 Duration: 239.32 ms	Memory Usage: 103 MB
+
+Project URL:  https://fccmgcmpkoyiplycwoqv.supabase.co
+
+
+Service role key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjY21nY21wa295aXBseWN3b3F2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODMwNzIxMywiZXhwIjoyMDczODgzMjEzfQ.3VOhzfcdGLqUdx2yHdomy599oumirXNMV3z-qIRIfyE
