@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistente de Planejamento de Aulas e Relatórios</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tab-button.active {
+            border-color: #3b82f6;
+            color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        #output-planner h3, #output-reporter h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #1e40af;
+            border-bottom: 2px solid #dbeafe;
+            padding-bottom: 0.5rem;
+        }
+        #output-planner ul, #output-reporter ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        #output-planner li, #output-reporter li {
+            margin-bottom: 0.5rem;
+        }
+        .output-section {
+            background-color: #f9fafb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            border: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-800">Assistente Educacional 🎯</h1>
+            <p class="text-gray-600 mt-2">Sua ferramenta para planejar aulas e criar relatórios de forma eficiente.</p>
+        </header>
+
+        <!-- Abas de Navegação -->
+        <div class="mb-6 border-b border-gray-200">
+            <nav class="flex space-x-4" aria-label="Tabs">
+                <button id="tab-planner" class="tab-button active text-lg font-medium py-3 px-5 border-b-2 transition-colors duration-200 ease-in-out">
+                    Planejamento de Aulas
+                </button>
+                <button id="tab-reporter" class="tab-button text-lg font-medium py-3 px-5 border-b-2 border-transparent hover:border-gray-300 transition-colors duration-200 ease-in-out">
+                    Relatório de Aulas
+                </button>
+            </nav>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <main>
+            <!-- FUNCIONALIDADE 1: PLANEJAMENTO DE AULAS -->
+            <div id="content-planner">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-semibold mb-4 text-blue-700">1. Forneça os Detalhes da Aula</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label for="programa" class="block text-sm font-medium text-gray-700 mb-1">Programa da Aula (objetivos, tópicos, competências)</label>
+                            <textarea id="programa" rows="5" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: Introduzir o conceito de fotossíntese, identificar as partes de uma planta, desenvolver a observação científica."></textarea>
+                        </div>
+                        <div>
+                            <label for="materiais" class="block text-sm font-medium text-gray-700 mb-1">Materiais Disponíveis</label>
+                            <textarea id="materiais" rows="4" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: Projetor, lousa, folhas de plantas, livros didáticos, acesso à internet."></textarea>
+                        </div>
+                        <div>
+                            <label for="tempo" class="block text-sm font-medium text-gray-700 mb-1">Tempo Total (em minutos)</label>
+                            <input type="number" id="tempo" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: 50">
+                        </div>
+                    </div>
+                    <div class="mt-6 text-center">
+                        <button id="generate-plan-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105">
+                            Criar Plano de Aula
+                        </button>
+                    </div>
+                </div>
+                <div id="output-planner" class="mt-8"></div>
+            </div>
+
+            <!-- FUNCIONALIDADE 2: RELATÓRIO DE AULAS -->
+            <div id="content-reporter" class="hidden">
+                 <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-semibold mb-4 text-blue-700">2. Insira o Conteúdo do Relatório</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label for="observacoes" class="block text-sm font-medium text-gray-700 mb-1">Transcrições de Áudio ou Observações em Texto</label>
+                            <textarea id="observacoes" rows="6" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="Cole aqui as transcrições ou digite suas observações sobre a aula..."></textarea>
+                        </div>
+                        <div>
+                            <label for="info-aula" class="block text-sm font-medium text-gray-700 mb-1">Tópico, Data e Duração</label>
+                            <input type="text" id="info-aula" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: Fotossíntese, 19/09/2025, 50 min">
+                        </div>
+                        <div>
+                            <label for="participantes" class="block text-sm font-medium text-gray-700 mb-1">Número de Participantes</label>
+                            <input type="number" id="participantes" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: 25">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="audio-file" class="block text-sm font-medium text-gray-700 mb-1">Gravação da Aula (Áudio)</label>
+                            <input type="file" id="audio-file" accept="audio/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"/>
+                            <p class="text-xs text-gray-500 mt-1">Opcional. Envie um arquivo de áudio para transcrição e análise automática.</p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="imagens" class="block text-sm font-medium text-gray-700 mb-1">Evidências Visuais (Imagens)</label>
+                            <input type="file" id="imagens" multiple accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                        </div>
+                    </div>
+                     <div class="mt-6 text-center">
+                        <button id="generate-report-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105">
+                            Compilar Relatório
+                        </button>
+                    </div>
+                </div>
+                <div id="output-reporter" class="mt-8"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Lógica para alternar abas
+        const tabPlanner = document.getElementById('tab-planner');
+        const tabReporter = document.getElementById('tab-reporter');
+        const contentPlanner = document.getElementById('content-planner');
+        const contentReporter = document.getElementById('content-reporter');
+
+        tabPlanner.addEventListener('click', () => {
+            tabPlanner.classList.add('active');
+            tabReporter.classList.remove('active');
+            contentPlanner.classList.remove('hidden');
+            contentReporter.classList.add('hidden');
+        });
+
+        tabReporter.addEventListener('click', () => {
+            tabReporter.classList.add('active');
+            tabPlanner.classList.remove('active');
+            contentReporter.classList.remove('hidden');
+            contentPlanner.classList.add('hidden');
+        });
+
+        // --- Funcionalidade 1: Gerador de Plano de Aula (com API) ---
+        const generatePlanBtn = document.getElementById('generate-plan-btn');
+        const outputPlanner = document.getElementById('output-planner');
+
+        generatePlanBtn.addEventListener('click', async () => {
+            const programa = document.getElementById('programa').value;
+            const materiais = document.getElementById('materiais').value;
+            const tempo = document.getElementById('tempo').value;
+
+            if (!programa || !materiais || !tempo) {
+                outputPlanner.innerHTML = `<div class="output-section bg-red-100 border-red-400 text-red-700"><p class="font-bold">Atenção:</p><p>Por favor, preencha todos os campos para gerar o plano de aula.</p></div>`;
+                return;
+            }
+
+            // UI feedback
+            generatePlanBtn.disabled = true;
+            generatePlanBtn.textContent = 'Gerando Plano...';
+            outputPlanner.innerHTML = '<div class="output-section text-center"><p>Analisando suas informações e construindo o plano de aula... 🧠</p></div>';
+
+            try {
+                const response = await fetch('/api/generate-plan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ programa, materiais, tempo })
+                });
+
+                const resultHtml = await response.text();
+                
+                if (!response.ok) {
+                    throw new Error('A resposta do servidor não foi bem-sucedida.');
+                }
+
+                outputPlanner.innerHTML = `<div class="output-section">${resultHtml}</div>`;
+
+            } catch (error) {
+                console.error('Erro ao gerar plano de aula:', error);
+                outputPlanner.innerHTML = `<div class="output-section bg-red-100 border-red-400 text-red-700"><p class="font-bold">Erro:</p><p>Não foi possível conectar ao servidor. Verifique se ele está rodando e tente novamente.</p></div>`;
+            } finally {
+                // Restore UI
+                generatePlanBtn.disabled = false;
+                generatePlanBtn.textContent = 'Criar Plano de Aula';
+            }
+        });
+
+        // --- Funcionalidade 2: Gerador de Relatório (com API) ---
+        const generateReportBtn = document.getElementById('generate-report-btn');
+        const outputReporter = document.getElementById('output-reporter');
+
+        generateReportBtn.addEventListener('click', async () => {
+            const observacoes = document.getElementById('observacoes').value;
+            const infoAula = document.getElementById('info-aula').value;
+            const participantes = document.getElementById('participantes').value;
+            const audioFileInput = document.getElementById('audio-file');
+            const imagensInput = document.getElementById('imagens');
+
+            if (!observacoes || !infoAula || !participantes) {
+                outputReporter.innerHTML = `<div class="output-section bg-red-100 border-red-400 text-red-700"><p class="font-bold">Atenção:</p><p>Preencha as informações da aula e as observações.</p></div>`;
+                return;
+            }
+
+            // UI feedback
+            generateReportBtn.disabled = true;
+            generateReportBtn.textContent = 'Compilando Relatório...';
+            outputReporter.innerHTML = '<div class="output-section text-center"><p>Processando dados e transcrevendo áudio (se houver)... 🎙️</p></div>';
+
+            const formData = new FormData();
+            formData.append('observacoes', observacoes);
+            formData.append('infoAula', infoAula);
+            formData.append('participantes', participantes);
+            if (audioFileInput.files[0]) {
+                formData.append('audioFile', audioFileInput.files[0]);
+            }
+
+            try {
+                const response = await fetch('/api/generate-report', {
+                    method: 'POST',
+                    body: formData // FormData sets the correct Content-Type header automatically
+                });
+
+                const resultHtml = await response.text();
+
+                if (!response.ok) {
+                    throw new Error('A resposta do servidor não foi bem-sucedida.');
+                }
+
+                // Handle images locally
+                let imagesHTML = '';
+                if (imagensInput.files.length > 0) {
+                    imagesHTML = '<h3 class="text-xl font-semibold mt-6 mb-3 text-blue-800">Evidências Visuais</h3><div class="grid grid-cols-2 md:grid-cols-3 gap-4">';
+                    for (const file of imagensInput.files) {
+                        const imageUrl = URL.createObjectURL(file);
+                        imagesHTML += `
+                            <div class="text-center">
+                                <img src="${imageUrl}" alt="${file.name}" class="w-full h-auto rounded-lg shadow-md mb-2">
+                            </div>
+                        `;
+                    }
+                    imagesHTML += '</div>';
+                }
+
+                outputReporter.innerHTML = `<div class="output-section">${resultHtml}${imagesHTML}</div>`;
+
+            } catch (error) {
+                console.error('Erro ao gerar relatório:', error);
+                outputReporter.innerHTML = `<div class="output-section bg-red-100 border-red-400 text-red-700"><p class="font-bold">Erro:</p><p>Não foi possível conectar ao servidor. Verifique se ele está rodando e tente novamente.</p></div>`;
+            } finally {
+                // Restore UI
+                generateReportBtn.disabled = false;
+                generateReportBtn.textContent = 'Compilar Relatório';
+            }
+        });
+    </script>
+</body>
+</html>
