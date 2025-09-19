@@ -38,7 +38,9 @@ exports.handler = async (event) => {
         }, {
             headers: {
                 'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://a-par.netlify.app', // Replace with your actual site URL
+                'X-Title': 'A-par' // Replace with your actual site name
             }
         });
 

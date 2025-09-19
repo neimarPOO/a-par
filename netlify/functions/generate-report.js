@@ -100,7 +100,12 @@ exports.handler = async (event) => {
                 { role: "user", content: combinedText }
             ]
         }, {
-            headers: { 'Authorization': `Bearer ${OPENROUTER_API_KEY}`, 'Content-Type': 'application/json' }
+            headers: { 
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://a-par.netlify.app', // Replace with your actual site URL
+                'X-Title': 'A-par' // Replace with your actual site name
+            }
         });
 
         const generatedHtml = openRouterResponse.data.choices[0].message.content;
