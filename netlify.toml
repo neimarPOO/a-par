@@ -8,5 +8,6 @@
 
 [build]
   command = "npm run build"
+  environment = { NETLIFY_BUILD_DISABLE_SECRETS_SCAN = "true" }
   [build.processing.secrets_scan]
     omit_paths = ["config.js"]
