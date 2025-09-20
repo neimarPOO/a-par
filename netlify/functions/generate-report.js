@@ -7,7 +7,7 @@ const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions";
 const reportGeneratorPrompt = `
 Você é um assistente eficiente. Sua tarefa é criar um resumo conciso a partir dos textos das transcrições de aulas fornecidas.
 O resumo deve ter no máximo dois parágrafos.
-Comece o resumo com a frase "Esta semana ...".
+Comece o resumo em primeira pessoa, com a frase "Esta semana eu ...".
 Compile as informações das transcrições em um texto coeso e direto.
 Responda diretamente com o HTML para ser inserido em uma div. Use tags como <p> e <strong>.
 `;
