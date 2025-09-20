@@ -67,7 +67,11 @@ exports.handler = async (event) => {
         }
 
         if (!transcriptionText) {
-            throw new Error('Transcription result was empty.');
+            // Instead of a generic 500 error, return a specific 400-level error for the frontend.
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: 'Nenhuma fala foi detectada no áudio ou o áudio está em silêncio.' }),
+            };
         }
 
         // 2. Save transcription to Supabase
