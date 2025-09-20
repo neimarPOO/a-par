@@ -1,5 +1,7 @@
 [build]
   command = "npm run build"
+  [build.processing.secrets_scan]
+    omit_paths = ["config.js"]
 
 [functions]
     directory = "netlify/functions"
