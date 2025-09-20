@@ -44,7 +44,10 @@
 
     <header class="py-4">
         <div class="container text-center">
-            <a class="navbar-brand text-primary" href="#">A-par 🎯</a>
+            <div class="d-flex justify-content-center align-items-center position-relative">
+                <a class="navbar-brand text-primary" href="#">A-par 🎯</a>
+                <button id="logout-btn" class="btn btn-sm btn-outline-secondary position-absolute" style="right: 0;">Sair</button>
+            </div>
             <p class="text-muted">Assistente de Planejamento de Aulas e Relatórios</p>
         </div>
     </header>
@@ -124,7 +127,35 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
     <script>
+        // --- Verificação de Sessão ---
+        checkSession();
+
+        // --- Lógica do Botão de Logout ---
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            logout();
+        });
+
+        // --- Helper para Fetch Autenticado ---
+        async function authedFetch(url, options = {}) {
+            const { data: { session }, error } = await _supabase.auth.getSession();
+
+            if (error || !session) {
+                console.error('No session found, redirecting to login.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const headers = {
+                ...options.headers,
+                'Authorization': `Bearer ${session.access_token}`,
+            };
+
+            return fetch(url, { ...options, headers });
+        }
+
         // --- Variáveis Globais e Elementos do DOM ---
         let mediaRecorder, audioChunks = [], recordedAudioFile = null;
         const recordBtn = document.getElementById('record-btn');
@@ -140,7 +171,7 @@
         // --- Lógica de Transcrições ---
         async function loadTranscriptions() {
             try {
-                const response = await fetch('/api/list-transcriptions');
+                const response = await authedFetch('/api/list-transcriptions');
                 const transcriptions = await response.json();
                 if (!response.ok) throw new Error(transcriptions.error);
 
@@ -190,7 +221,7 @@
             }
 
             try {
-                const response = await fetch('/api/create-transcription', { method: 'POST', body: formData });
+                const response = await authedFetch('/api/create-transcription', { method: 'POST', body: formData });
                 const result = await response.json();
                 if (!response.ok) throw new Error(result.error);
                 addTranscriptionForm.reset();
@@ -212,7 +243,7 @@
                 if (!confirm('Tem certeza que deseja excluir esta transcrição?')) return;
 
                 try {
-                    const response = await fetch('/api/delete-transcription', {
+                    const response = await authedFetch('/api/delete-transcription', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ id })
@@ -241,7 +272,7 @@
             outputReporter.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Compilando relatório...</p></div>';
 
             try {
-                const response = await fetch('/api/generate-report', {
+                const response = await authedFetch('/api/generate-report', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ transcriptionIds: selectedIds, infoAula, participantes })
@@ -309,7 +340,7 @@
             generatePlanBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Gerando...';
             outputPlanner.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Analisando... 🧠</p></div>';
             try {
-                const response = await fetch('/api/generate-plan', {
+                const response = await authedFetch('/api/generate-plan', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ programa, materiais, tempo })
