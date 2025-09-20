@@ -1,6 +1,3 @@
-const SUPABASE_URL = 'https://fccmgcmpkoyiplycwoqv.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjY21nY21wa295aXBseWN3b3F2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgzMDcyMTMsImV4cCI6MjA3Mzg4MzIxM30.9mmJDHzx96kn3odkxoz8sqBQOITnPpPLhSadsDGy6Ew';
-
 const { createClient } = supabase;
 const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 

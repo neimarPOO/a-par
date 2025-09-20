@@ -1,3 +1,109 @@
-Sep 20, 03:24:37 PM: dc300dcd ERROR  Error creating transcription: Transcription result was empty.Sep 20, 03:24:37 PM: dc300dcd Duration: 3740.48 ms	Memory Usage: 112 MB
-
-
+4:45:55 PM: build-image version: 82641f3cd91d26dfb76016a98afb1d48c45185fc (noble)
+4:45:55 PM: buildbot version: 82641f3cd91d26dfb76016a98afb1d48c45185fc
+4:45:55 PM: Fetching cached dependencies
+4:45:55 PM: Starting to download cache of 189.2MB (Last modified: 2025-09-20 18:43:31 +0000 UTC)
+4:45:55 PM: Finished downloading cache in 596ms
+4:45:55 PM: Starting to extract cache
+4:45:58 PM: Finished extracting cache in 2.742s
+4:45:58 PM: Finished fetching cache in 3.402s
+4:45:58 PM: Starting to prepare the repo for build
+4:45:58 PM: Preparing Git Reference refs/heads/master
+4:46:00 PM: Starting to install dependencies
+4:46:00 PM: Started restoring cached python cache
+4:46:00 PM: Finished restoring cached python cache
+4:46:00 PM: Started restoring cached ruby cache
+4:46:01 PM: Finished restoring cached ruby cache
+4:46:01 PM: Started restoring cached go cache
+4:46:02 PM: Finished restoring cached go cache
+4:46:02 PM: v22.19.0 is already installed.
+4:46:03 PM: Now using node v22.19.0 (npm v10.9.3)
+4:46:03 PM: Enabling Node.js Corepack
+4:46:03 PM: Started restoring cached build plugins
+4:46:03 PM: Finished restoring cached build plugins
+4:46:03 PM: Started restoring cached corepack dependencies
+4:46:03 PM: Finished restoring cached corepack dependencies
+4:46:03 PM: No npm workspaces detected
+4:46:03 PM: Started restoring cached node modules
+4:46:03 PM: Finished restoring cached node modules
+4:46:03 PM: Installing npm packages using npm version 10.9.3
+4:46:03 PM: up to date in 313ms
+4:46:03 PM: npm packages installed
+4:46:04 PM: Successfully installed dependencies
+4:46:04 PM: Starting build script
+4:46:04 PM: Detected 0 framework(s)
+4:46:04 PM: Section completed: initializing
+4:46:05 PM: ​
+4:46:05 PM: Netlify Build                                                 
+4:46:05 PM: ────────────────────────────────────────────────────────────────
+4:46:05 PM: ​
+4:46:05 PM: ❯ Version
+4:46:05 PM:   @netlify/build 35.1.6
+4:46:05 PM: ​
+4:46:05 PM: ❯ Flags
+4:46:05 PM:   accountId: 68a3af75fcc40b3dea9c68ff
+4:46:05 PM:   baseRelDir: true
+4:46:05 PM:   buildId: 68cf046dfc8aab00087a0dff
+4:46:05 PM:   deployId: 68cf046dfc8aab00087a0e01
+4:46:06 PM: ​
+4:46:06 PM: ❯ Current directory
+4:46:06 PM:   /opt/build/repo
+4:46:06 PM: ​
+4:46:06 PM: ❯ Config file
+4:46:06 PM:   /opt/build/repo/netlify.toml
+4:46:06 PM: ​
+4:46:06 PM: ❯ Context
+4:46:06 PM:   production
+4:46:06 PM: ​
+4:46:06 PM: Functions bundling                                            
+4:46:06 PM: ────────────────────────────────────────────────────────────────
+4:46:06 PM: ​
+4:46:06 PM: Packaging Functions from netlify/functions directory:
+4:46:06 PM:  - create-transcription.js
+4:46:06 PM:  - delete-transcription.js
+4:46:06 PM:  - generate-plan.js
+4:46:06 PM:  - generate-report.js
+4:46:06 PM:  - list-transcriptions.js
+4:46:06 PM: ​
+4:46:07 PM: Failed during stage 'building site': Build script returned non-zero exit code: 2 (https://ntl.fyi/exit-code-2)
+4:46:07 PM: ​
+4:46:07 PM: (Functions bundling completed in 1.1s)
+4:46:07 PM: ​
+4:46:07 PM: Scanning for secrets in code and build output.                
+4:46:07 PM: ────────────────────────────────────────────────────────────────
+4:46:07 PM: ​
+4:46:07 PM: ​
+4:46:07 PM: ❯ Scanning complete. 17 file(s) scanned. Secrets scanning found 1 instance(s) of secrets in build output or repo code.
+4:46:07 PM: ​
+4:46:07 PM: Secret env var "SUPABASE_URL"'s value detected:
+  found value at line 1 in auth.js
+4:46:07 PM: ​
+4:46:07 PM: To prevent exposing secrets, the build will fail until these secret values are not found in build output or repo files.
+4:46:07 PM: ​
+4:46:07 PM: If these are expected, use SECRETS_SCAN_OMIT_PATHS, SECRETS_SCAN_OMIT_KEYS, or SECRETS_SCAN_ENABLED to prevent detecting.
+4:46:07 PM: ​
+4:46:07 PM: For more information on secrets scanning, see the Netlify Docs: https://ntl.fyi/configure-secrets-scanning
+4:46:07 PM: ​
+4:46:07 PM: Secrets scanning detected secrets in files during build.      
+4:46:07 PM: ────────────────────────────────────────────────────────────────
+4:46:07 PM: ​
+4:46:07 PM:   Error message
+4:46:07 PM:   Secrets scanning found secrets in build.
+4:46:07 PM: ​
+4:46:07 PM:   Resolved config
+4:46:07 PM:   build:
+4:46:07 PM:     environment:
+4:46:07 PM:       - ASSEMBLYAI_API_KEY
+4:46:07 PM:       - OPENROUTER_API_KEY
+4:46:07 PM:       - SUPABASE_SERVICE_KEY
+4:46:07 PM:       - SUPABASE_URL
+4:46:07 PM:     publish: /opt/build/repo
+4:46:07 PM:     publishOrigin: ui
+4:46:07 PM:   functionsDirectory: /opt/build/repo/netlify/functions
+4:46:07 PM:   redirects:
+4:46:07 PM:     - from: /api/*
+      status: 200
+      to: /.netlify/functions/:splat
+  redirectsOrigin: config
+4:46:07 PM: Build failed due to a user error: Build script returned non-zero exit code: 2
+4:46:07 PM: Failing build: Failed to build site
+4:46:08 PM: Finished processing build request in 12.937s
