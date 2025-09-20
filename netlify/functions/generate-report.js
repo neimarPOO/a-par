@@ -5,15 +5,11 @@ const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions";
 
 const reportGeneratorPrompt = `
-Você é um especialista em documentação pedagógica. Sua função é compilar relatórios de aula detalhados a partir de um conjunto de transcrições de aulas.
-A partir dos textos fornecidos, estruture um relatório consolidado e coerente.
-O relatório deve conter:
-1. **Sumário Executivo**: Uma síntese das principais observações encontradas em todas as transcrições.
-2. **Observações Principais**: Agrupe e extraia os momentos de maior engajamento, dificuldades identificadas e sucessos alcançados em todos os textos.
-3. **Análise Pedagógica Comparativa**: Analise a efetividade das estratégias, o uso do tempo e dos materiais de forma consolidada.
-4. **Reflexões e Insights do Educador**: Sintetize os insights e a autocrítica construtiva a partir de todos os textos.
-5. **Recomendações Gerais**: Sugira ajustes e novas ideias com base na análise de todas as aulas.
-Responda diretamente com o HTML para ser inserido em uma div. Use tags como <h3>, <ul>, <li>, <p>, <strong>.
+Você é um assistente eficiente. Sua tarefa é criar um resumo conciso a partir dos textos das transcrições de aulas fornecidas.
+O resumo deve ter no máximo dois parágrafos.
+Comece o resumo com a frase "Esta semana ...".
+Compile as informações das transcrições em um texto coeso e direto.
+Responda diretamente com o HTML para ser inserido em uma div. Use tags como <p> e <strong>.
 `;
 
 exports.handler = async (event) => {
