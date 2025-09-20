@@ -46,7 +46,7 @@ exports.handler = async (event) => {
         });
         const uploadUrl = uploadResponse.data.upload_url;
 
-        const transcriptResponse = await axios.post(`${assemblyApiUrl}/transcript`, { audio_url: uploadUrl }, {
+        const transcriptResponse = await axios.post(`${assemblyApiUrl}/transcript`, { audio_url: uploadUrl, language_code: 'pt' }, {
             headers: { 'authorization': ASSEMBLYAI_API_KEY }
         });
         const transcriptId = transcriptResponse.data.id;
