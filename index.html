@@ -26,8 +26,11 @@
             color: var(--bs-secondary-color); /* Textos brancos */
         }
         .navbar-brand { font-weight: 700; font-size: 1.75rem; color: var(--bs-primary) !important; } /* Marca em laranja */
-        .nav-tabs .nav-link { color: var(--bs-secondary-color); font-weight: 500; } /* Links da aba em branco */
-        .nav-tabs .nav-link.active { color: var(--bs-primary); background-color: var(--bs-body-bg); border-color: #dee2e6 #dee2e6 var(--bs-body-bg); font-weight: 600; } /* Aba ativa em laranja */
+        .nav-tabs { border-bottom: 1px solid #3a3a4e; margin-bottom: 1rem; } /* Borda inferior para as abas */
+        .nav-tabs .nav-item { margin-bottom: -1px; } /* Ajuste para a borda */
+        .nav-tabs .nav-link { color: var(--bs-secondary-color); font-weight: 500; border: 1px solid transparent; border-top-left-radius: 0.25rem; border-top-right-radius: 0.25rem; transition: all 0.3s ease; }
+        .nav-tabs .nav-link:hover:not(.active) { color: var(--bs-primary); border-color: #3a3a4e #3a3a4e #2a2a3e; background-color: #2a2a3e; }
+        .nav-tabs .nav-link.active { color: var(--bs-primary); background-color: var(--bs-body-bg); border-color: #3a3a4e #3a3a4e var(--bs-body-bg); font-weight: 600; } /* Aba ativa em laranja */
         .card { border: none; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3); background-color: #2a2a3e; color: var(--bs-secondary-color); } /* Cards mais escuros */
         .btn { font-weight: 600; padding: 0.5rem 1rem; transition: all 0.3s ease; }
         .btn-primary { background-color: var(--bs-primary); border-color: var(--bs-primary); }
@@ -76,9 +79,23 @@
         .text-muted {
             color: #bbb !important;
         }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .navbar-brand { font-size: 1.5rem; }
+            .nav-tabs .nav-link { font-size: 0.9rem; padding: 0.5rem 0.75rem; }
+            .card { padding: 1.5rem !important; }
+            .output-section, .transcription-list { padding: 1.5rem; }
+            .footer { padding: 1.5rem 0; }
+            #user-info { position: static !important; margin-top: 10px; justify-content: center; }
+            #logout-btn { position: static !important; margin-top: 10px; }
+            .d-flex.justify-content-center.align-items-center.position-relative {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
-<body class="bg-light">
+<body class="">
 
     <header class="py-4">
         <div class="container text-center">
