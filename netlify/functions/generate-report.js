@@ -25,7 +25,7 @@ exports.handler = async (event) => {
         }
 
         // 1. Fetch transcriptions from Supabase
-        const { data: transcriptions, error } = await supabase
+        const { data: transcriptions, error } = await supabaseAdmin
             .from('transcriptions')
             .select('title, transcription_text')
             .in('id', transcriptionIds);
