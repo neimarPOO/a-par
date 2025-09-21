@@ -41,6 +41,9 @@ async function signUp() {
 async function signInWithGoogle() {
     const { error } = await _supabase.auth.signInWithOAuth({
         provider: 'google',
+        options: {
+            redirectTo: 'https://a-par.netlify.app'
+        }
     });
     if (error) {
         errorMessage.textContent = error.message;
@@ -85,5 +88,21 @@ async function checkSession() {
     } else {
         // Usuário logado, pode continuar na index
         console.log('User is logged in.');
+        // Exibir informações do usuário
+        const userEmailSpan = document.getElementById('user-email');
+        const userAvatarImg = document.getElementById('user-avatar');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        if (data.session.user) {
+            userEmailSpan.textContent = data.session.user.email;
+            userEmailSpan.style.display = 'inline';
+            
+            const avatarUrl = data.session.user.user_metadata?.avatar_url || data.session.user.user_metadata?.picture;
+            if (avatarUrl) {
+                userAvatarImg.src = avatarUrl;
+                userAvatarImg.style.display = 'inline';
+            }
+            logoutBtn.style.display = 'inline'; // Garante que o botão de sair esteja visível
+        }
     }
 }
