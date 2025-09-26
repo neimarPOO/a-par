@@ -228,7 +228,6 @@
         const transcriptionListContainer = document.getElementById('transcription-list-container');
         const generateReportBtn = document.getElementById('generate-report-btn');
         const outputReporter = document.getElementById('output-reporter');
-        const addTextBtn = document.getElementById('add-text-btn');
 
         // --- Lógica de Transcrições ---
         async function loadTranscriptions() {
@@ -298,38 +297,6 @@
                             } finally {
                                 addTranscriptionBtn.disabled = false;
                                 addTranscriptionBtn.innerHTML = '<i class="bi bi-plus-lg me-2"></i>Adicionar à Lista';
-                            }
-                        });
-                
-                        // --- Lógica para Adicionar Texto ---
-                        addTextBtn.addEventListener('click', async () => {
-                            const title = document.getElementById('text-title').value;
-                            const content = document.getElementById('text-content').value;
-                
-                            if (!title || !content) {
-                                alert('Por favor, forneça um título e o conteúdo do texto.');
-                                return;
-                            }
-                
-                            addTextBtn.disabled = true;
-                            addTextBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
-                
-                            try {
-                                const response = await authedFetch('/api/create-transcription', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ title, transcription_text: content, type: 'text' })
-                                });
-                                const result = await response.json();
-                                if (!response.ok) throw new Error(result.error);
-                                document.getElementById('text-title').value = '';
-                                document.getElementById('text-content').value = '';
-                                await loadTranscriptions();
-                            } catch (error) {
-                                alert(`Erro ao salvar texto: ${error.message}`);
-                            } finally {
-                                addTextBtn.disabled = false;
-                                addTextBtn.innerHTML = '<i class="bi bi-file-earmark-text me-2"></i>Salvar Texto';
                             }
                         });
                 
