@@ -94,8 +94,7 @@ async function checkSession() {
         const logoutBtn = document.getElementById('logout-btn');
 
         if (data.session.user) {
-            userEmailSpan.textContent = data.session.user.email;
-            userEmailSpan.style.display = 'inline';
+            userEmailSpan.style.display = 'none'; // Oculta o e-mail
             
             const avatarUrl = data.session.user.user_metadata?.avatar_url || data.session.user.user_metadata?.picture;
             if (avatarUrl) {

@@ -136,29 +136,18 @@
             </div>
 
             <div class="tab-pane fade" id="content-reporter" role="tabpanel">
-                <div class="card p-4 p-md-5 mt-3">
-                    <h2 class="h4 mb-4 fw-bold" style="color: #ffffff;">1. Adicionar Nova Transcrição de Aula</h2>
-                    <form id="create-transcription-form">
-                        <div class="row g-3">
-                            <div class="col-12"><div class="form-floating"><input type="text" id="transcription-title" class="form-control" placeholder="Título" required><label for="transcription-title">Título da Aula/Gravação</label></div></div>
-                            <div class="col-12">
-                                <div class="p-3 border rounded bg-light">
-                                    <div class="d-flex flex-wrap gap-2 align-items-center">
-                                        <button type="button" id="record-btn" class="btn btn-sm btn-success"><i class="bi bi-mic-fill me-1"></i>Gravar</button>
-                                        <button type="button" id="stop-btn" class="btn btn-sm btn-danger" disabled><i class="bi bi-stop-circle-fill me-1"></i>Parar</button>
-                                        <button type="button" id="open-text-modal-btn" class="btn btn-sm btn-info"><i class="bi bi-file-earmark-text me-1"></i>Adicionar Texto</button>
-                                        <div id="recording-status" class="ms-2 fw-bold"></div>
-                                    </div>
-                                    <hr>
-                                    <label for="audio-file" class="form-label small mb-1">Ou faça o upload de um arquivo:</label>
-                                    <input type="file" id="audio-file" accept="audio/*" class="form-control form-control-sm">
-                                </div>
-                            </div>
-                            <div class="col-12 text-center">
-                                <button type="submit" id="add-transcription-btn" class="btn btn-secondary"><i class="bi bi-plus-lg me-2"></i>Adicionar à Lista</button>
-                            </div>
-                        </div>
-                    </form>
+                <div class="card p-4 p-md-5 mt-3 text-center">
+                    <h2 class="h4 mb-4 fw-bold" style="color: #ffffff;">1. Crie ou adicione um registro de aula</h2>
+                    <div class="d-flex justify-content-center gap-3 mt-3">
+                        <button type="button" class="btn btn-primary btn-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#recordModal" style="width: 100px; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <i class="bi bi-mic-fill" style="font-size: 2rem;"></i>
+                            <span style="font-size: 0.8rem;">Gravar</span>
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#textModal" style="width: 100px; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <i class="bi bi-file-earmark-text-fill" style="font-size: 2rem;"></i>
+                            <span style="font-size: 0.8rem;">Texto</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="card p-4 p-md-5 mt-4">
@@ -177,6 +166,68 @@
                 <div id="output-reporter"></div>
             </div>
         </main>
+
+        <!-- Modal de Gravação -->
+        <div class="modal fade" id="recordModal" tabindex="-1" aria-labelledby="recordModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="recordModalLabel">Gravar Áudio</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="record-transcription-form">
+                            <div class="form-floating mb-3">
+                                <input type="text" id="record-title" class="form-control" placeholder="Título" required>
+                                <label for="record-title">Título da Gravação</label>
+                            </div>
+                            <div class="p-3 border rounded bg-light text-center">
+                                <button type="button" id="record-btn" class="btn btn-success"><i class="bi bi-mic-fill me-1"></i> Gravar</button>
+                                <button type="button" id="stop-btn" class="btn btn-danger" disabled><i class="bi bi-stop-circle-fill me-1"></i> Parar</button>
+                                <div id="recording-status" class="mt-2 fw-bold"></div>
+                            </div>
+                            <div class="mt-3">
+                                <label for="audio-file" class="form-label small mb-1">Ou faça o upload de um arquivo de áudio:</label>
+                                <input type="file" id="audio-file" accept="audio/*" class="form-control form-control-sm">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" id="add-record-transcription-btn" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Adicionar à Lista</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Adicionar Texto -->
+        <div class="modal fade" id="textModal" tabindex="-1" aria-labelledby="textModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="textModalLabel">Adicionar Transcrição de Texto</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="text-transcription-form">
+                            <div class="form-floating mb-3">
+                                <input type="text" id="text-title" class="form-control" placeholder="Título" required>
+                                <label for="text-title">Título do Texto</label>
+                            </div>
+                            <div class="form-floating">
+                                <textarea id="text-content" class="form-control" placeholder="Conteúdo do texto" style="height: 150px" required></textarea>
+                                <label for="text-content">Conteúdo do texto</label>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" id="add-text-transcription-btn" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Adicionar à Lista</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <footer class="footer">
@@ -223,8 +274,8 @@
         const stopBtn = document.getElementById('stop-btn');
         const recordingStatus = document.getElementById('recording-status');
         const audioFileInput = document.getElementById('audio-file');
-        const addTranscriptionForm = document.getElementById('create-transcription-form');
-        const addTranscriptionBtn = document.getElementById('add-transcription-btn');
+        const addRecordTranscriptionBtn = document.getElementById('add-record-transcription-btn');
+        const addTextTranscriptionBtn = document.getElementById('add-text-transcription-btn');
         const transcriptionListContainer = document.getElementById('transcription-list-container');
         const generateReportBtn = document.getElementById('generate-report-btn');
         const outputReporter = document.getElementById('output-reporter');
@@ -241,184 +292,216 @@
                     return;
                 }
 
-                                let listHtml = '<ul class="list-group list-group-flush">';
-                                transcriptions.forEach(t => {
-                                    const typeIcon = t.type === 'audio' ? '<i class="bi bi-mic-fill me-2"></i>' : '<i class="bi bi-file-earmark-text-fill me-2"></i>';
-                                    listHtml += `
-                                        <li class="list-group-item d-flex justify-content-between align-items-center transcription-item">
-                                            <div>
-                                                <input class="form-check-input me-2" type="checkbox" value="${t.id}" id="transcription-${t.id}">
-                                                <label class="form-check-label fw-bold" for="transcription-${t.id}">${typeIcon}${t.title}</label>
-                                                <small class="d-block text-muted">Tipo: ${t.type === 'audio' ? 'Áudio' : 'Texto'} | Criado em: ${new Date(t.created_at).toLocaleString()}</small>
-                                            </div>
-                                            <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${t.id}"><i class="bi bi-trash"></i></button>
-                                        </li>`;
-                                });
-                                listHtml += '</ul>';
-                                transcriptionListContainer.innerHTML = listHtml;
-                            } catch (error) {
-                                transcriptionListContainer.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
-                            }
-                        }
-                
-                        // --- Lógica para Adicionar Transcrição de Áudio ---
-                        addTranscriptionForm.addEventListener('submit', async (e) => {
-                            e.preventDefault();
-                            const title = document.getElementById('transcription-title').value;
-                            const audioFile = audioFileInput.files[0];
-                
-                            if (!title || (!audioFile && !recordedAudioFile)) {
-                                alert('Por favor, forneça um título e um áudio (gravado ou via upload).');
-                                return;
-                            }
-                
-                            addTranscriptionBtn.disabled = true;
-                            addTranscriptionBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Adicionando...';
-                
-                            const formData = new FormData();
-                            formData.append('title', title);
-                            formData.append('type', 'audio'); // Adiciona o tipo
-                            if (recordedAudioFile) {
-                                formData.append('audioFile', recordedAudioFile, 'recording.webm');
-                            } else {
-                                formData.append('audioFile', audioFile);
-                            }
-                
-                            try {
-                                const response = await authedFetch('/api/create-transcription', { method: 'POST', body: formData });
-                                const result = await response.json();
-                                if (!response.ok) throw new Error(result.error);
-                                addTranscriptionForm.reset();
-                                recordingStatus.innerHTML = '';
-                                recordedAudioFile = null;
-                                await loadTranscriptions();
-                            } catch (error) {
-                                alert(`Erro ao criar transcrição: ${error.message}`);
-                            } finally {
-                                addTranscriptionBtn.disabled = false;
-                                addTranscriptionBtn.innerHTML = '<i class="bi bi-plus-lg me-2"></i>Adicionar à Lista';
-                            }
-                        });
-                
-                        transcriptionListContainer.addEventListener('click', async (e) => {
-                            if (e.target.closest('.delete-btn')) {
-                                const btn = e.target.closest('.delete-btn');
-                                const id = btn.dataset.id;
-                                if (!confirm('Tem certeza que deseja excluir esta transcrição?')) return;
-                
-                                try {
-                                    const response = await authedFetch('/api/delete-transcription', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ id })
-                                    });
-                                    const result = await response.json();
-                                    if (!response.ok) throw new Error(result.error);
-                                    await loadTranscriptions();
-                                } catch (error) {
-                                    alert(`Erro ao excluir: ${error.message}`);
-                                }
-                            }
-                        });
-                        
-                generateReportBtn.addEventListener('click', async () => {
-                            const selectedIds = Array.from(transcriptionListContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-                            const infoAula = document.getElementById('info-aula').value;
-                            const participantes = document.getElementById('participantes').value;
-                
-                            if (selectedIds.length === 0) {
-                                alert('Selecione pelo menos uma transcrição para gerar o relatório.');
-                                return;
-                            }
-                
-                            generateReportBtn.disabled = true;
-                            generateReportBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Compilando...';
-                            outputReporter.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Compilando relatório...</p></div>';
-                
-                            try {
-                                const response = await authedFetch('/api/generate-report', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ transcriptionIds: selectedIds, infoAula, participantes })
-                                });
-                                const resultHtml = await response.text();
-                                if (!response.ok) throw new Error(resultHtml);
-                                outputReporter.innerHTML = `<div class="output-section">${resultHtml}</div>`;
-                            } catch (error) {
-                                outputReporter.innerHTML = `<div class="output-section"><div class="alert alert-danger">${error.message}</div></div>`;
-                            }
-                            finally {
-                                generateReportBtn.disabled = false;
-                                generateReportBtn.innerHTML = '<i class="bi bi-file-earmark-text me-2"></i>Compilar Relatório';
-                            }
-                        });
-                
-                        // --- Lógica de Gravação (semelhante à anterior) ---
-                        recordBtn.addEventListener('click', async () => {
-                            try {
-                                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                                mediaRecorder = new MediaRecorder(stream);
-                                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                                mediaRecorder.onstop = () => {
-                                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                                    recordedAudioFile = new File([audioBlob], "recording.webm", { type: 'audio/webm' });
-                                    recordingStatus.innerHTML = '';
-                                    const audioEl = document.createElement('audio');
-                                    audioEl.src = URL.createObjectURL(audioBlob);
-                                    audioEl.controls = true;
-                                    recordingStatus.appendChild(audioEl);
-                                    audioChunks = [];
-                                };
-                                audioChunks = [];
-                                recordedAudioFile = null;
-                                mediaRecorder.start();
-                                recordBtn.disabled = true;
-                                stopBtn.disabled = false;
-                                audioFileInput.disabled = true;
-                                recordingStatus.innerHTML = '<span class="text-danger">Gravando...</span>';
-                            } catch (err) {
-                                recordingStatus.innerHTML = '<span class="text-danger">Erro ao acessar microfone.</span>';
-                            }
-                        });
-                
-                        stopBtn.addEventListener('click', () => {
-                            mediaRecorder.stop();
-                            recordBtn.disabled = false;
-                            stopBtn.disabled = true;
-                            audioFileInput.disabled = false;
-                        });
-                        
-                        // --- Inicialização ---
-                        document.addEventListener('DOMContentLoaded', loadTranscriptions);
-                        // Lógica do planejador (sem alterações)
-                        const generatePlanBtn = document.getElementById('generate-plan-btn');
-                        const outputPlanner = document.getElementById('output-planner');
-                        generatePlanBtn.addEventListener('click', async () => {
-                            const programa = document.getElementById('programa').value;
-                            const materiais = document.getElementById('materiais').value;
-                            const tempo = document.getElementById('tempo').value;
-                            if (!programa || !materiais || !tempo) {
-                                outputPlanner.innerHTML = `<div class="alert alert-danger mt-4">Preencha todos os campos.</div>`;
-                                return;
-                            }
-                            generatePlanBtn.disabled = true;
-                            generatePlanBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Gerando...';
-                            outputPlanner.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Analisando... 🧠</p></div>';
-                            try {
-                                const response = await authedFetch('/api/generate-plan', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ programa, materiais, tempo })
-                                });
-                                const resultHtml = await response.text();
-                                if (!response.ok) throw new Error(resultHtml);
-                                outputPlanner.innerHTML = `<div class="output-section">${resultHtml}</div>`;
-                            } catch (error) {
-                                outputPlanner.innerHTML = `<div class="output-section"><div class="alert alert-danger">${error.message}</div></div>`;
-                            } finally {
-                                generatePlanBtn.disabled = false;
-                                generatePlanBtn.innerHTML = '<i class="bi bi-magic me-2"></i>Criar Plano de Aula';
-                            }
-                        });
-                    </script>
+                let listHtml = '<ul class="list-group list-group-flush">';
+                transcriptions.forEach(t => {
+                    const typeIcon = t.type === 'audio' ? '<i class="bi bi-mic-fill me-2"></i>' : '<i class="bi bi-file-earmark-text-fill me-2"></i>';
+                    listHtml += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center transcription-item">
+                            <div>
+                                <input class="form-check-input me-2" type="checkbox" value="${t.id}" id="transcription-${t.id}">
+                                <label class="form-check-label fw-bold" for="transcription-${t.id}">${typeIcon}${t.title}</label>
+                                <small class="d-block text-muted">Tipo: ${t.type === 'audio' ? 'Áudio' : 'Texto'} | Criado em: ${new Date(t.created_at).toLocaleString()}</small>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${t.id}"><i class="bi bi-trash"></i></button>
+                        </li>`;
+                });
+                listHtml += '</ul>';
+                transcriptionListContainer.innerHTML = listHtml;
+            } catch (error) {
+                transcriptionListContainer.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+            }
+        }
+
+        // --- Lógica para Adicionar Transcrição de Áudio ---
+        addRecordTranscriptionBtn.addEventListener('click', async () => {
+            const title = document.getElementById('record-title').value;
+            const audioFile = audioFileInput.files[0];
+
+            if (!title || (!audioFile && !recordedAudioFile)) {
+                alert('Por favor, forneça um título e um áudio (gravado ou via upload).');
+                return;
+            }
+
+            addRecordTranscriptionBtn.disabled = true;
+            addRecordTranscriptionBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Adicionando...';
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('type', 'audio');
+            if (recordedAudioFile) {
+                formData.append('audioFile', recordedAudioFile, 'recording.webm');
+            } else {
+                formData.append('audioFile', audioFile);
+            }
+
+            try {
+                const response = await authedFetch('/api/create-transcription', { method: 'POST', body: formData });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error);
+                document.getElementById('record-transcription-form').reset();
+                recordingStatus.innerHTML = '';
+                recordedAudioFile = null;
+                bootstrap.Modal.getInstance(document.getElementById('recordModal')).hide();
+                await loadTranscriptions();
+            } catch (error) {
+                alert(`Erro ao criar transcrição: ${error.message}`);
+            } finally {
+                addRecordTranscriptionBtn.disabled = false;
+                addRecordTranscriptionBtn.innerHTML = '<i class="bi bi-plus-lg me-2"></i>Adicionar à Lista';
+            }
+        });
+
+        // --- Lógica para Adicionar Transcrição de Texto ---
+        addTextTranscriptionBtn.addEventListener('click', async () => {
+            const title = document.getElementById('text-title').value;
+            const content = document.getElementById('text-content').value;
+
+            if (!title || !content) {
+                alert('Por favor, forneça um título e o conteúdo do texto.');
+                return;
+            }
+
+            addTextTranscriptionBtn.disabled = true;
+            addTextTranscriptionBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Adicionando...';
+
+            try {
+                const response = await authedFetch('/api/create-transcription', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: title, transcription_text: content, type: 'text' })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error);
+                document.getElementById('text-transcription-form').reset();
+                bootstrap.Modal.getInstance(document.getElementById('textModal')).hide();
+                await loadTranscriptions();
+            } catch (error) {
+                alert(`Erro ao criar transcrição: ${error.message}`);
+            } finally {
+                addTextTranscriptionBtn.disabled = false;
+                addTextTranscriptionBtn.innerHTML = '<i class="bi bi-plus-lg me-2"></i>Adicionar à Lista';
+            }
+        });
+
+        transcriptionListContainer.addEventListener('click', async (e) => {
+            if (e.target.closest('.delete-btn')) {
+                const btn = e.target.closest('.delete-btn');
+                const id = btn.dataset.id;
+                if (!confirm('Tem certeza que deseja excluir esta transcrição?')) return;
+
+                try {
+                    const response = await authedFetch('/api/delete-transcription', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id })
+                    });
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.error);
+                    await loadTranscriptions();
+                } catch (error) {
+                    alert(`Erro ao excluir: ${error.message}`);
+                }
+            }
+        });
+
+        generateReportBtn.addEventListener('click', async () => {
+            const selectedIds = Array.from(transcriptionListContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            const infoAula = document.getElementById('info-aula').value;
+            const participantes = document.getElementById('participantes').value;
+
+            if (selectedIds.length === 0) {
+                alert('Selecione pelo menos uma transcrição para gerar o relatório.');
+                return;
+            }
+
+            generateReportBtn.disabled = true;
+            generateReportBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Compilando...';
+            outputReporter.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Compilando relatório...</p></div>';
+
+            try {
+                const response = await authedFetch('/api/generate-report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ transcriptionIds: selectedIds, infoAula, participantes })
+                });
+                const resultHtml = await response.text();
+                if (!response.ok) throw new Error(resultHtml);
+                outputReporter.innerHTML = `<div class="output-section">${resultHtml}</div>`;
+            } catch (error) {
+                outputReporter.innerHTML = `<div class="output-section"><div class="alert alert-danger">${error.message}</div></div>`;
+            }
+            finally {
+                generateReportBtn.disabled = false;
+                generateReportBtn.innerHTML = '<i class="bi bi-file-earmark-text me-2"></i>Compilar Relatório';
+            }
+        });
+
+        // --- Lógica de Gravação ---
+        recordBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    recordedAudioFile = new File([audioBlob], "recording.webm", { type: 'audio/webm' });
+                    recordingStatus.innerHTML = '';
+                    const audioEl = document.createElement('audio');
+                    audioEl.src = URL.createObjectURL(audioBlob);
+                    audioEl.controls = true;
+                    recordingStatus.appendChild(audioEl);
+                    audioChunks = [];
+                };
+                audioChunks = [];
+                recordedAudioFile = null;
+                mediaRecorder.start();
+                recordBtn.disabled = true;
+                stopBtn.disabled = false;
+                audioFileInput.disabled = true;
+                recordingStatus.innerHTML = '<span class="text-danger">Gravando...</span>';
+            } catch (err) {
+                recordingStatus.innerHTML = '<span class="text-danger">Erro ao acessar microfone.</span>';
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            mediaRecorder.stop();
+            recordBtn.disabled = false;
+            stopBtn.disabled = true;
+            audioFileInput.disabled = false;
+        });
+
+        // --- Inicialização ---
+        document.addEventListener('DOMContentLoaded', loadTranscriptions);
+        // Lógica do planejador (sem alterações)
+        const generatePlanBtn = document.getElementById('generate-plan-btn');
+        const outputPlanner = document.getElementById('output-planner');
+        generatePlanBtn.addEventListener('click', async () => {
+            const programa = document.getElementById('programa').value;
+            const materiais = document.getElementById('materiais').value;
+            const tempo = document.getElementById('tempo').value;
+            if (!programa || !materiais || !tempo) {
+                outputPlanner.innerHTML = `<div class="alert alert-danger mt-4">Preencha todos os campos.</div>`;
+                return;
+            }
+            generatePlanBtn.disabled = true;
+            generatePlanBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Gerando...';
+            outputPlanner.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Analisando... 🧠</p></div>';
+            try {
+                const response = await authedFetch('/api/generate-plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ programa, materiais, tempo })
+                });
+                const resultHtml = await response.text();
+                if (!response.ok) throw new Error(resultHtml);
+                outputPlanner.innerHTML = `<div class="output-section">${resultHtml}</div>`;
+            } catch (error) {
+                outputPlanner.innerHTML = `<div class="output-section"><div class="alert alert-danger">${error.message}</div></div>`;
+            } finally {
+                generatePlanBtn.disabled = false;
+                generatePlanBtn.innerHTML = '<i class="bi bi-magic me-2"></i>Criar Plano de Aula';
+            }
+        });
+    </script>
                 </body></html>
