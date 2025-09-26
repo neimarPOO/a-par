@@ -123,16 +123,37 @@
 
         <main class="tab-content" id="myTabContent">
             <div class="tab-pane fade show active" id="content-planner" role="tabpanel">
-                <div class="card p-4 p-md-5 mt-3">
+                <div class="card p-4 p-md-5 mt-3 text-center">
                     <h2 class="h4 mb-4 fw-bold" style="color: #ffffff;">1. Forneça os Detalhes da Aula</h2>
-                    <div class="row g-4">
-                         <div class="col-12"><div class="form-floating"><textarea id="programa" class="form-control" placeholder="Programa" style="height: 120px"></textarea><label for="programa">Programa da Aula</label></div></div>
-                         <div class="col-md-6"><div class="form-floating"><textarea id="materiais" class="form-control" placeholder="Materiais" style="height: 100px"></textarea><label for="materiais">Materiais</label></div></div>
-                         <div class="col-md-6"><div class="form-floating"><input type="number" id="tempo" class="form-control" placeholder="Tempo"><label for="tempo">Tempo (minutos)</label></div></div>
+                    <div class="d-flex justify-content-center gap-3 mt-3">
+                        <button type="button" class="btn btn-primary btn-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#recordModal" style="width: 100px; height: 100px; display: flex; flex-direction: column; align-items-center; justify-content: center;">
+                            <i class="bi bi-mic-fill" style="font-size: 2rem;"></i>
+                            <span style="font-size: 0.8rem;">Gravar</span>
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#textModal" style="width: 100px; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <i class="bi bi-file-earmark-text-fill" style="font-size: 2rem;"></i>
+                            <span style="font-size: 0.8rem;">Texto</span>
+                        </button>
                     </div>
-                    <div class="mt-4 text-center"><button id="generate-plan-btn" class="btn btn-primary"><i class="bi bi-magic me-2"></i>Criar Plano de Aula</button></div>
                 </div>
+                <div class="card p-4 p-md-5 mt-4">
+                    <h2 class="h4 mb-4 fw-bold" style="color: #ffffff;">2. Crie um Plano de Aula a Partir de Suas Anotações</h2>
+                    <div id="planner-transcription-list-container" class="transcription-list p-0">
+                        <div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Carregando anotações...</p></div>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <button id="generate-plan-btn" class="btn btn-primary"><i class="bi bi-magic me-2"></i>Criar Plano de Aula</button>
+                    </div>
+                </div>
+
                 <div id="output-planner"></div>
+
+                <div class="card p-4 p-md-5 mt-4">
+                    <h2 class="h4 mb-4 fw-bold" style="color: #ffffff;">3. Planos de Aula Salvos</h2>
+                    <div id="saved-plans-container" class="p-0">
+                        <div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Carregando planos salvos...</p></div>
+                    </div>
+                </div>
             </div>
 
             <div class="tab-pane fade" id="content-reporter" role="tabpanel">
@@ -268,17 +289,7 @@
             return fetch(url, { ...options, headers });
         }
 
-        // --- Variáveis Globais e Elementos do DOM ---
-        let mediaRecorder, audioChunks = [], recordedAudioFile = null;
-        const recordBtn = document.getElementById('record-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        const recordingStatus = document.getElementById('recording-status');
-        const audioFileInput = document.getElementById('audio-file');
-        const addRecordTranscriptionBtn = document.getElementById('add-record-transcription-btn');
-        const addTextTranscriptionBtn = document.getElementById('add-text-transcription-btn');
-        const transcriptionListContainer = document.getElementById('transcription-list-container');
-        const generateReportBtn = document.getElementById('generate-report-btn');
-        const outputReporter = document.getElementById('output-reporter');
+        const plannerTranscriptionListContainer = document.getElementById('planner-transcription-list-container');
 
         // --- Lógica de Transcrições ---
         async function loadTranscriptions() {
@@ -288,7 +299,9 @@
                 if (!response.ok) throw new Error(transcriptions.error);
 
                 if (transcriptions.length === 0) {
-                    transcriptionListContainer.innerHTML = '<p class="text-center text-muted p-3">Nenhuma transcrição salva ainda.</p>';
+                    const emptyMessage = '<p class="text-center text-muted p-3">Nenhuma anotação salva ainda.</p>';
+                    transcriptionListContainer.innerHTML = emptyMessage;
+                    plannerTranscriptionListContainer.innerHTML = emptyMessage;
                     return;
                 }
 
@@ -307,8 +320,11 @@
                 });
                 listHtml += '</ul>';
                 transcriptionListContainer.innerHTML = listHtml;
+                plannerTranscriptionListContainer.innerHTML = listHtml;
             } catch (error) {
-                transcriptionListContainer.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+                const errorMessage = `<div class="alert alert-danger">${error.message}</div>`;
+                transcriptionListContainer.innerHTML = errorMessage;
+                plannerTranscriptionListContainer.innerHTML = errorMessage;
             }
         }
 
@@ -472,36 +488,71 @@
         });
 
         // --- Inicialização ---
-        document.addEventListener('DOMContentLoaded', loadTranscriptions);
-        // Lógica do planejador (sem alterações)
-        const generatePlanBtn = document.getElementById('generate-plan-btn');
-        const outputPlanner = document.getElementById('output-planner');
-        generatePlanBtn.addEventListener('click', async () => {
-            const programa = document.getElementById('programa').value;
-            const materiais = document.getElementById('materiais').value;
-            const tempo = document.getElementById('tempo').value;
-            if (!programa || !materiais || !tempo) {
-                outputPlanner.innerHTML = `<div class="alert alert-danger mt-4">Preencha todos os campos.</div>`;
-                return;
-            }
-            generatePlanBtn.disabled = true;
-            generatePlanBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Gerando...';
-            outputPlanner.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Analisando... 🧠</p></div>';
-            try {
-                const response = await authedFetch('/api/generate-plan', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ programa, materiais, tempo })
-                });
-                const resultHtml = await response.text();
-                if (!response.ok) throw new Error(resultHtml);
-                outputPlanner.innerHTML = `<div class="output-section">${resultHtml}</div>`;
-            } catch (error) {
-                outputPlanner.innerHTML = `<div class="output-section"><div class="alert alert-danger">${error.message}</div></div>`;
-            } finally {
-                generatePlanBtn.disabled = false;
-                generatePlanBtn.innerHTML = '<i class="bi bi-magic me-2"></i>Criar Plano de Aula';
-            }
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTranscriptions();
+            loadPlans();
         });
-    </script>
+
+        // --- Lógica para Carregar Planos Salvos ---
+        async function loadPlans() {
+            const savedPlansContainer = document.getElementById('saved-plans-container');
+            try {
+                const response = await authedFetch('/api/list-plans');
+                const plans = await response.json();
+                if (!response.ok) throw new Error(plans.error);
+
+                if (plans.length === 0) {
+                    savedPlansContainer.innerHTML = '<p class="text-center text-muted p-3">Nenhum plano de aula salvo ainda.</p>';
+                    return;
+                }
+
+                let listHtml = '<ul class="list-group list-group-flush">';
+                plans.forEach(plan => {
+                    listHtml += `
+                        <li class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">Plano de Aula - ${new Date(plan.created_at).toLocaleDateString()}</h5>
+                                <small>${new Date(plan.created_at).toLocaleTimeString()}</small>
+                            </div>
+                            <div class="plan-content mt-2">${plan.plan_content}</div>
+                        </li>`;
+                });
+                listHtml += '</ul>';
+                savedPlansContainer.innerHTML = listHtml;
+            } catch (error) {
+                savedPlansContainer.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+            }
+        }
+
+        // Lógica do planejador (sem alterações)
+                const generatePlanBtn = document.getElementById('generate-plan-btn');
+                const outputPlanner = document.getElementById('output-planner');
+                generatePlanBtn.addEventListener('click', async () => {
+                    const selectedIds = Array.from(plannerTranscriptionListContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+        
+                    if (selectedIds.length === 0) {
+                        alert('Selecione pelo menos uma anotação para gerar o plano de aula.');
+                        return;
+                    }
+        
+                    generatePlanBtn.disabled = true;
+                    generatePlanBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Gerando...';
+                    outputPlanner.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Analisando... 🧠</p></div>';
+        
+                    try {
+                        const response = await authedFetch('/api/generate-plan', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ transcriptionIds: selectedIds })
+                        });
+                        const resultHtml = await response.text();
+                        if (!response.ok) throw new Error(resultHtml);
+                        outputPlanner.innerHTML = `<div class="output-section">${resultHtml}</div>`;
+                    } catch (error) {
+                        outputPlanner.innerHTML = `<div class="output-section"><div class="alert alert-danger">${error.message}</div></div>`;
+                    } finally {
+                        generatePlanBtn.disabled = false;
+                        generatePlanBtn.innerHTML = '<i class="bi bi-magic me-2"></i>Criar Plano de Aula';
+                    }
+                });    </script>
                 </body></html>
