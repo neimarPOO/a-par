@@ -328,231 +328,213 @@
             }
         }
 
-        // --- Lógica para Adicionar Transcrição de Áudio ---
-        addRecordTranscriptionBtn.addEventListener('click', async () => {
-            const title = document.getElementById('record-title').value;
-            const audioFile = audioFileInput.files[0];
-
-            if (!title || (!audioFile && !recordedAudioFile)) {
-                alert('Por favor, forneça um título e um áudio (gravado ou via upload).');
-                return;
-            }
-
-            addRecordTranscriptionBtn.disabled = true;
-            addRecordTranscriptionBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Adicionando...';
-
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('type', 'audio');
-            if (recordedAudioFile) {
-                formData.append('audioFile', recordedAudioFile, 'recording.webm');
-            } else {
-                formData.append('audioFile', audioFile);
-            }
-
-            try {
-                const response = await authedFetch('/api/create-transcription', { method: 'POST', body: formData });
-                const result = await response.json();
-                if (!response.ok) throw new Error(result.error);
-                document.getElementById('record-transcription-form').reset();
-                recordingStatus.innerHTML = '';
-                recordedAudioFile = null;
-                bootstrap.Modal.getInstance(document.getElementById('recordModal')).hide();
-                await loadTranscriptions();
-            } catch (error) {
-                alert(`Erro ao criar transcrição: ${error.message}`);
-            } finally {
-                addRecordTranscriptionBtn.disabled = false;
-                addRecordTranscriptionBtn.innerHTML = '<i class="bi bi-plus-lg me-2"></i>Adicionar à Lista';
-            }
-        });
-
-        // --- Lógica para Adicionar Transcrição de Texto ---
-        addTextTranscriptionBtn.addEventListener('click', async () => {
-            const title = document.getElementById('text-title').value;
-            const content = document.getElementById('text-content').value;
-
-            if (!title || !content) {
-                alert('Por favor, forneça um título e o conteúdo do texto.');
-                return;
-            }
-
-            addTextTranscriptionBtn.disabled = true;
-            addTextTranscriptionBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Adicionando...';
-
-            try {
-                const response = await authedFetch('/api/create-transcription', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title: title, transcription_text: content, type: 'text' })
-                });
-                const result = await response.json();
-                if (!response.ok) throw new Error(result.error);
-                document.getElementById('text-transcription-form').reset();
-                bootstrap.Modal.getInstance(document.getElementById('textModal')).hide();
-                await loadTranscriptions();
-            } catch (error) {
-                alert(`Erro ao criar transcrição: ${error.message}`);
-            } finally {
-                addTextTranscriptionBtn.disabled = false;
-                addTextTranscriptionBtn.innerHTML = '<i class="bi bi-plus-lg me-2"></i>Adicionar à Lista';
-            }
-        });
-
-        transcriptionListContainer.addEventListener('click', async (e) => {
-            if (e.target.closest('.delete-btn')) {
-                const btn = e.target.closest('.delete-btn');
-                const id = btn.dataset.id;
-                if (!confirm('Tem certeza que deseja excluir esta transcrição?')) return;
-
-                try {
-                    const response = await authedFetch('/api/delete-transcription', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id })
-                    });
-                    const result = await response.json();
-                    if (!response.ok) throw new Error(result.error);
-                    await loadTranscriptions();
-                } catch (error) {
-                    alert(`Erro ao excluir: ${error.message}`);
-                }
-            }
-        });
-
-        generateReportBtn.addEventListener('click', async () => {
-            const selectedIds = Array.from(transcriptionListContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            const infoAula = document.getElementById('info-aula').value;
-            const participantes = document.getElementById('participantes').value;
-
-            if (selectedIds.length === 0) {
-                alert('Selecione pelo menos uma transcrição para gerar o relatório.');
-                return;
-            }
-
-            generateReportBtn.disabled = true;
-            generateReportBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Compilando...';
-            outputReporter.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Compilando relatório...</p></div>';
-
-            try {
-                const response = await authedFetch('/api/generate-report', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ transcriptionIds: selectedIds, infoAula, participantes })
-                });
-                const resultHtml = await response.text();
-                if (!response.ok) throw new Error(resultHtml);
-                outputReporter.innerHTML = `<div class="output-section">${resultHtml}</div>`;
-            } catch (error) {
-                outputReporter.innerHTML = `<div class="output-section"><div class="alert alert-danger">${error.message}</div></div>`;
-            }
-            finally {
-                generateReportBtn.disabled = false;
-                generateReportBtn.innerHTML = '<i class="bi bi-file-earmark-text me-2"></i>Compilar Relatório';
-            }
-        });
-
-        // --- Lógica de Gravação ---
-        recordBtn.addEventListener('click', async () => {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    recordedAudioFile = new File([audioBlob], "recording.webm", { type: 'audio/webm' });
-                    recordingStatus.innerHTML = '';
-                    const audioEl = document.createElement('audio');
-                    audioEl.src = URL.createObjectURL(audioBlob);
-                    audioEl.controls = true;
-                    recordingStatus.appendChild(audioEl);
-                    audioChunks = [];
-                };
-                audioChunks = [];
-                recordedAudioFile = null;
-                mediaRecorder.start();
-                recordBtn.disabled = true;
-                stopBtn.disabled = false;
-                audioFileInput.disabled = true;
-                recordingStatus.innerHTML = '<span class="text-danger">Gravando...</span>';
-            } catch (err) {
-                recordingStatus.innerHTML = '<span class="text-danger">Erro ao acessar microfone.</span>';
-            }
-        });
-
-        stopBtn.addEventListener('click', () => {
-            mediaRecorder.stop();
-            recordBtn.disabled = false;
-            stopBtn.disabled = true;
-            audioFileInput.disabled = false;
-        });
-
-        // --- Inicialização ---
         document.addEventListener('DOMContentLoaded', () => {
             loadTranscriptions();
             loadPlans();
-        });
 
-        // --- Lógica para Carregar Planos Salvos ---
-        async function loadPlans() {
-            const savedPlansContainer = document.getElementById('saved-plans-container');
-            try {
-                const response = await authedFetch('/api/list-plans');
-                const plans = await response.json();
-                if (!response.ok) throw new Error(plans.error);
+            const addRecordTranscriptionBtn = document.getElementById('add-record-transcription-btn');
+            const addTextTranscriptionBtn = document.getElementById('add-text-transcription-btn');
+            const recordBtn = document.getElementById('record-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            const audioFileInput = document.getElementById('audio-file');
+            const transcriptionListContainer = document.getElementById('transcription-list-container');
+            const generateReportBtn = document.getElementById('generate-report-btn');
+            const outputReporter = document.getElementById('output-reporter');
+            const plannerTranscriptionListContainer = document.getElementById('planner-transcription-list-container');
+            const generatePlanBtn = document.getElementById('generate-plan-btn');
+            const outputPlanner = document.getElementById('output-planner');
 
-                if (plans.length === 0) {
-                    savedPlansContainer.innerHTML = '<p class="text-center text-muted p-3">Nenhum plano de aula salvo ainda.</p>';
+            // --- Lógica para Adicionar Transcrição de Áudio ---
+            addRecordTranscriptionBtn.addEventListener('click', async () => {
+                const title = document.getElementById('record-title').value;
+                const audioFile = audioFileInput.files[0];
+
+                if (!title || (!audioFile && !recordedAudioFile)) {
+                    alert('Por favor, forneça um título e um áudio (gravado ou via upload).');
                     return;
                 }
 
-                let listHtml = '<ul class="list-group list-group-flush">';
-                plans.forEach(plan => {
-                    listHtml += `
-                        <li class="list-group-item">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1">Plano de Aula - ${new Date(plan.created_at).toLocaleDateString()}</h5>
-                                <small>${new Date(plan.created_at).toLocaleTimeString()}</small>
-                            </div>
-                            <div class="plan-content mt-2">${plan.plan_content}</div>
-                        </li>`;
-                });
-                listHtml += '</ul>';
-                savedPlansContainer.innerHTML = listHtml;
-            } catch (error) {
-                savedPlansContainer.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
-            }
-        }
+                addRecordTranscriptionBtn.disabled = true;
+                addRecordTranscriptionBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Adicionando...';
 
-        // Lógica do planejador (sem alterações)
-                const generatePlanBtn = document.getElementById('generate-plan-btn');
-                const outputPlanner = document.getElementById('output-planner');
-                generatePlanBtn.addEventListener('click', async () => {
-                    const selectedIds = Array.from(plannerTranscriptionListContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-        
-                    if (selectedIds.length === 0) {
-                        alert('Selecione pelo menos uma anotação para gerar o plano de aula.');
-                        return;
-                    }
-        
-                    generatePlanBtn.disabled = true;
-                    generatePlanBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Gerando...';
-                    outputPlanner.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Analisando... 🧠</p></div>';
-        
+                const formData = new FormData();
+                formData.append('title', title);
+                formData.append('type', 'audio');
+                if (recordedAudioFile) {
+                    formData.append('audioFile', recordedAudioFile, 'recording.webm');
+                } else {
+                    formData.append('audioFile', audioFile);
+                }
+
+                try {
+                    const response = await authedFetch('/api/create-transcription', { method: 'POST', body: formData });
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.error);
+                    document.getElementById('record-transcription-form').reset();
+                    const recordingStatus = document.getElementById('recording-status');
+                    recordingStatus.innerHTML = '';
+                    recordedAudioFile = null;
+                    bootstrap.Modal.getInstance(document.getElementById('recordModal')).hide();
+                    await loadTranscriptions();
+                } catch (error) {
+                    alert(`Erro ao criar transcrição: ${error.message}`);
+                } finally {
+                    addRecordTranscriptionBtn.disabled = false;
+                    addRecordTranscriptionBtn.innerHTML = '<i class="bi bi-plus-lg me-2"></i>Adicionar à Lista';
+                }
+            });
+
+            // --- Lógica para Adicionar Transcrição de Texto ---
+            addTextTranscriptionBtn.addEventListener('click', async () => {
+                const title = document.getElementById('text-title').value;
+                const content = document.getElementById('text-content').value;
+
+                if (!title || !content) {
+                    alert('Por favor, forneça um título e o conteúdo do texto.');
+                    return;
+                }
+
+                addTextTranscriptionBtn.disabled = true;
+                addTextTranscriptionBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Adicionando...';
+
+                try {
+                    const response = await authedFetch('/api/create-transcription', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title: title, transcription_text: content, type: 'text' })
+                    });
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.error);
+                    document.getElementById('text-transcription-form').reset();
+                    bootstrap.Modal.getInstance(document.getElementById('textModal')).hide();
+                    await loadTranscriptions();
+                } catch (error) {
+                    alert(`Erro ao criar transcrição: ${error.message}`);
+                } finally {
+                    addTextTranscriptionBtn.disabled = false;
+                    addTextTranscriptionBtn.innerHTML = '<i class="bi bi-plus-lg me-2"></i>Adicionar à Lista';
+                }
+            });
+
+            transcriptionListContainer.addEventListener('click', async (e) => {
+                if (e.target.closest('.delete-btn')) {
+                    const btn = e.target.closest('.delete-btn');
+                    const id = btn.dataset.id;
+                    if (!confirm('Tem certeza que deseja excluir esta transcrição?')) return;
+
                     try {
-                        const response = await authedFetch('/api/generate-plan', {
+                        const response = await authedFetch('/api/delete-transcription', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ transcriptionIds: selectedIds })
+                            body: JSON.stringify({ id })
                         });
-                        const resultHtml = await response.text();
-                        if (!response.ok) throw new Error(resultHtml);
-                        outputPlanner.innerHTML = `<div class="output-section">${resultHtml}</div>`;
+                        const result = await response.json();
+                        if (!response.ok) throw new Error(result.error);
+                        await loadTranscriptions();
                     } catch (error) {
-                        outputPlanner.innerHTML = `<div class="output-section"><div class="alert alert-danger">${error.message}</div></div>`;
-                    } finally {
-                        generatePlanBtn.disabled = false;
-                        generatePlanBtn.innerHTML = '<i class="bi bi-magic me-2"></i>Criar Plano de Aula';
+                        alert(`Erro ao excluir: ${error.message}`);
                     }
-                });    </script>
+                }
+            });
+
+            generateReportBtn.addEventListener('click', async () => {
+                const selectedIds = Array.from(transcriptionListContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+                const infoAula = document.getElementById('info-aula').value;
+                const participantes = document.getElementById('participantes').value;
+
+                if (selectedIds.length === 0) {
+                    alert('Selecione pelo menos uma transcrição para gerar o relatório.');
+                    return;
+                }
+
+                generateReportBtn.disabled = true;
+                generateReportBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Compilando...';
+                outputReporter.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Compilando relatório...</p></div>';
+
+                try {
+                    const response = await authedFetch('/api/generate-report', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ transcriptionIds: selectedIds, infoAula, participantes })
+                    });
+                    const resultHtml = await response.text();
+                    if (!response.ok) throw new Error(resultHtml);
+                    outputReporter.innerHTML = `<div class="output-section">${resultHtml}</div>`;
+                } catch (error) {
+                    outputReporter.innerHTML = `<div class="output-section"><div class="alert alert-danger">${error.message}</div></div>`;
+                }
+                finally {
+                    generateReportBtn.disabled = false;
+                    generateReportBtn.innerHTML = '<i class="bi bi-file-earmark-text me-2"></i>Compilar Relatório';
+                }
+            });
+
+            // --- Lógica de Gravação ---
+            let mediaRecorder, audioChunks = [], recordedAudioFile = null;
+            recordBtn.addEventListener('click', async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        recordedAudioFile = new File([audioBlob], "recording.webm", { type: 'audio/webm' });
+                        const recordingStatus = document.getElementById('recording-status');
+                        recordingStatus.innerHTML = '';
+                        const audioEl = document.createElement('audio');
+                        audioEl.src = URL.createObjectURL(audioBlob);
+                        audioEl.controls = true;
+                        recordingStatus.appendChild(audioEl);
+                        audioChunks = [];
+                    };
+                    audioChunks = [];
+                    recordedAudioFile = null;
+                    mediaRecorder.start();
+                    recordBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    audioFileInput.disabled = true;
+                    const recordingStatus = document.getElementById('recording-status');
+                    recordingStatus.innerHTML = '<span class="text-danger">Gravando...</span>';
+                } catch (err) {
+                    const recordingStatus = document.getElementById('recording-status');
+                    recordingStatus.innerHTML = '<span class="text-danger">Erro ao acessar microfone.</span>';
+                }
+            });
+
+            stopBtn.addEventListener('click', () => {
+                mediaRecorder.stop();
+                recordBtn.disabled = false;
+                stopBtn.disabled = true;
+                audioFileInput.disabled = false;
+            });
+
+            generatePlanBtn.addEventListener('click', async () => {
+                const selectedIds = Array.from(plannerTranscriptionListContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+
+                if (selectedIds.length === 0) {
+                    alert('Selecione pelo menos uma anotação para gerar o plano de aula.');
+                    return;
+                }
+
+                generatePlanBtn.disabled = true;
+                generatePlanBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Gerando...';
+                outputPlanner.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Analisando... 🧠</p></div>';
+
+                try {
+                    const response = await authedFetch('/api/generate-plan', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ transcriptionIds: selectedIds })
+                    });
+                    const resultHtml = await response.text();
+                    if (!response.ok) throw new Error(resultHtml);
+                    outputPlanner.innerHTML = `<div class="output-section">${resultHtml}</div>`;
+                } catch (error) {
+                    outputPlanner.innerHTML = `<div class="output-section"><div class="alert alert-danger">${error.message}</div></div>`;
+                } finally {
+                    generatePlanBtn.disabled = false;
+                    generatePlanBtn.innerHTML = '<i class="bi bi-magic me-2"></i>Criar Plano de Aula';
+                }
+            });
+        });
                 </body></html>
