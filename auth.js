@@ -79,15 +79,27 @@ if (loginForm) {
 
 // --- Verificação de Sessão (para index.html) ---
 async function checkSession() {
-    const { data, error } = await _supabase.auth.getSession();
-    if (error || !data.session) {
-        // Se não estiver na página de login, redireciona
+    const { data: { session }, error } = await _supabase.auth.getSession();
+
+    if (error || !session) {
         if (!window.location.pathname.endsWith('login.html')) {
             window.location.href = 'login.html';
         }
     } else {
-        // Força o logout para limpar a sessão inválida.
-        console.log('Sessão encontrada, forçando logout para limpeza.');
-        logout();
+        // Sessão válida, exibe informações do usuário
+        const user = session.user;
+        const userAvatar = document.getElementById('user-avatar');
+        const userEmail = document.getElementById('user-email');
+
+        if (user) {
+            if (user.user_metadata && user.user_metadata.avatar_url) {
+                userAvatar.src = user.user_metadata.avatar_url;
+                userAvatar.style.display = 'block';
+            }
+            if (user.email) {
+                userEmail.textContent = user.email;
+                userEmail.style.display = 'block';
+            }
+        }
     }
 }

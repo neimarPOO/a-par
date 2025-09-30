@@ -278,7 +278,6 @@
     <script src="auth.js"></script>
     <script>
         // --- Verificação de Sessão ---
-        checkSession();
 
         // --- Lógica do Botão de Logout ---
         document.getElementById('logout-btn').addEventListener('click', () => {
@@ -342,7 +341,8 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkSession();
             loadTranscriptions();
 
             const addRecordTranscriptionBtn = document.getElementById('add-record-transcription-btn');
