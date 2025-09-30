@@ -277,12 +277,50 @@
     <script src="config.js"></script>
     <script src="auth.js" defer></script>
     <script defer>
-        // --- Verificação de Sessão ---
-
-        // --- Lógica do Botão de Logout ---
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            logout();
+        // --- Lógica de Autenticação e Carregamento de Dados ---
+        _supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN') {
+                // O usuário acabou de fazer login
+                console.log('User signed in, loading transcriptions...');
+                await updateUserUI(session.user);
+                loadTranscriptions();
+            } else if (event === 'SIGNED_OUT') {
+                // O usuário fez logout
+                window.location.href = 'login.html';
+            }
         });
+
+        // Verifica a sessão inicial no carregamento da página
+        async function initialSessionCheck() {
+            const { data: { session }, error } = await _supabase.auth.getSession();
+            if (error || !session) {
+                window.location.href = 'login.html';
+            } else {
+                await updateUserUI(session.user);
+                loadTranscriptions(); // Carrega os dados para o usuário já logado
+            }
+        }
+
+        async function updateUserUI(user) {
+            const userAvatar = document.getElementById('user-avatar');
+            const userEmail = document.getElementById('user-email');
+
+            if (user) {
+                if (user.user_metadata && user.user_metadata.avatar_url) {
+                    userAvatar.src = user.user_metadata.avatar_url;
+                    userAvatar.style.display = 'block';
+                }
+                if (user.email) {
+                    userEmail.textContent = user.email;
+                    userEmail.style.display = 'block';
+                }
+                document.getElementById('logout-btn').style.display = 'block';
+            } else {
+                userAvatar.style.display = 'none';
+                userEmail.style.display = 'none';
+                document.getElementById('logout-btn').style.display = 'none';
+            }
+        }
 
         // --- Helper para Fetch Autenticado ---
         async function authedFetch(url, options = {}) {
@@ -291,7 +329,8 @@
             if (error || !session) {
                 console.error('No session found, redirecting to login.');
                 window.location.href = 'login.html';
-                return;
+                // Lança um erro para interromper a execução do código que chamou
+                throw new Error('User not authenticated'); 
             }
 
             const headers = {
@@ -303,13 +342,26 @@
         }
 
         const plannerTranscriptionListContainer = document.getElementById('planner-transcription-list-container');
+        const transcriptionListContainer = document.getElementById('transcription-list-container');
 
         // --- Lógica de Transcrições ---
         async function loadTranscriptions() {
+            // Garante que os dois containers existam antes de tentar acessá-los
+            if (!transcriptionListContainer || !plannerTranscriptionListContainer) {
+                console.error('Transcription list containers not found.');
+                return;
+            }
+
+            const loadingHtml = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Carregando anotações...</p></div>';
+            transcriptionListContainer.innerHTML = loadingHtml;
+            plannerTranscriptionListContainer.innerHTML = loadingHtml;
+
             try {
                 const response = await authedFetch('/.netlify/functions/list-transcriptions');
+                if (!response) return; // Impede a execução se o authedFetch falhar
+
                 const transcriptions = await response.json();
-                if (!response.ok) throw new Error(transcriptions.error);
+                if (!response.ok) throw new Error(transcriptions.error || 'Failed to load transcriptions');
 
                 if (transcriptions.length === 0) {
                     const emptyMessage = '<p class="text-center text-muted p-3">Nenhuma anotação salva ainda.</p>';
@@ -322,28 +374,36 @@
                 transcriptions.forEach(t => {
                     const typeIcon = t.type === 'audio' ? '<i class="bi bi-mic-fill me-2"></i>' : '<i class="bi bi-file-earmark-text-fill me-2"></i>';
                     listHtml += `
-                        <li class="list-group-item d-flex justify-content-between align-items-center transcription-item">
+                        <li class="list-group-item d-flex justify-content-between align-items-center transcription-item bg-transparent text-white">
                             <div>
                                 <input class="form-check-input me-2" type="checkbox" value="${t.id}" id="transcription-${t.id}">
                                 <label class="form-check-label fw-bold" for="transcription-${t.id}">${typeIcon}${t.title}</label>
                                 <small class="d-block text-muted">Tipo: ${t.type === 'audio' ? 'Áudio' : 'Texto'} | Criado em: ${new Date(t.created_at).toLocaleString()}</small>
                             </div>
-                            <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${t.id}"><i class="bi bi-trash"></i></button>
+                            <div>
+                                <button class="btn btn-sm btn-outline-info view-btn me-2" data-id="${t.id}"><i class="bi bi-eye"></i></button>
+                                <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${t.id}"><i class="bi bi-trash"></i></button>
+                            </div>
                         </li>`;
                 });
                 listHtml += '</ul>';
                 transcriptionListContainer.innerHTML = listHtml;
                 plannerTranscriptionListContainer.innerHTML = listHtml;
             } catch (error) {
-                const errorMessage = `<div class="alert alert-danger">${error.message}</div>`;
+                console.error('Error in loadTranscriptions:', error);
+                const errorMessage = `<div class="alert alert-danger">Erro ao carregar anotações: ${error.message}</div>`;
                 transcriptionListContainer.innerHTML = errorMessage;
                 plannerTranscriptionListContainer.innerHTML = errorMessage;
             }
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            await checkSession();
-            loadTranscriptions();
+        document.addEventListener('DOMContentLoaded', () => {
+            initialSessionCheck();
+
+            // --- Lógica do Botão de Logout ---
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                logout();
+            });
 
             const addRecordTranscriptionBtn = document.getElementById('add-record-transcription-btn');
             const addTextTranscriptionBtn = document.getElementById('add-text-transcription-btn');
