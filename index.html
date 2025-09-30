@@ -122,6 +122,20 @@
         </ul>
 
         <main class="tab-content" id="myTabContent">
+            <!-- Modal para exibir conteúdo da transcrição -->
+            <div class="modal fade" id="transcription-content-modal" tabindex="-1" aria-labelledby="transcription-content-modal-label" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="transcription-content-modal-label">Conteúdo da Anotação</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="transcription-content-modal-body">
+                            <!-- O conteúdo será inserido aqui -->
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="tab-pane fade show active" id="content-planner" role="tabpanel">
                 <div class="card p-4 p-md-5 mt-3 text-center">
                     <h2 class="h4 mb-4 fw-bold" style="color: #ffffff;">1. Forneça os Detalhes da Aula</h2>
@@ -294,7 +308,7 @@
         // --- Lógica de Transcrições ---
         async function loadTranscriptions() {
             try {
-                const response = await authedFetch('/api/list-transcriptions');
+                const response = await authedFetch('/.netlify/functions/list-transcriptions');
                 const transcriptions = await response.json();
                 if (!response.ok) throw new Error(transcriptions.error);
 
@@ -367,7 +381,7 @@
                 }
 
                 try {
-                    const response = await authedFetch('/api/create-transcription', { method: 'POST', body: formData });
+                    const response = await authedFetch('/.netlify/functions/create-transcription', { method: 'POST', body: formData });
                     const result = await response.json();
                     if (!response.ok) throw new Error(result.error);
                     document.getElementById('record-transcription-form').reset();
@@ -398,7 +412,7 @@
                 addTextTranscriptionBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Adicionando...';
 
                 try {
-                    const response = await authedFetch('/api/create-transcription', {
+                    const response = await authedFetch('/.netlify/functions/create-transcription', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ title: title, transcription_text: content, type: 'text' })
@@ -423,7 +437,7 @@
                     if (!confirm('Tem certeza que deseja excluir esta transcrição?')) return;
 
                     try {
-                        const response = await authedFetch('/api/delete-transcription', {
+                        const response = await authedFetch('/.netlify/functions/delete-transcription', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ id })
@@ -452,7 +466,7 @@
                 outputReporter.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Compilando relatório...</p></div>';
 
                 try {
-                    const response = await authedFetch('/api/generate-report', {
+                    const response = await authedFetch('/.netlify/functions/generate-report', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ transcriptionIds: selectedIds, infoAula, participantes })
@@ -521,7 +535,7 @@
                 outputPlanner.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Analisando... 🧠</p></div>';
 
                 try {
-                    const response = await authedFetch('/api/generate-plan', {
+                    const response = await authedFetch('/.netlify/functions/generate-plan', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ transcriptionIds: selectedIds })
