@@ -1,22 +1,5 @@
 const { createClient } = supabase;
-let _supabase;
-
-try {
-    console.log('Attempting to initialize Supabase client...');
-    console.log('SUPABASE_URL available:', typeof SUPABASE_URL !== 'undefined');
-    console.log('SUPABASE_ANON_KEY available:', typeof SUPABASE_ANON_KEY !== 'undefined');
-
-    if (typeof SUPABASE_URL === 'undefined' || typeof SUPABASE_ANON_KEY === 'undefined') {
-        throw new Error('Supabase URL or Anon Key is not defined. Check config.js and Netlify environment variables.');
-    }
-
-    _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('Supabase client initialized successfully.');
-
-} catch (error) {
-    console.error('FATAL: Supabase client initialization failed.', error.message);
-    alert('ERRO CRÍTICO: A conexão com o banco de dados falhou. Verifique as chaves de API e a configuração do projeto. Pressione F12 para ver os detalhes do erro no console.');
-}
+const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const loginForm = document.getElementById('login-form');
 const loginBtn = document.getElementById('login-btn');
