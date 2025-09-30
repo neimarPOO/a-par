@@ -281,9 +281,10 @@
         _supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN') {
                 // O usuário acabou de fazer login
-                console.log('User signed in, loading transcriptions...');
+                console.log('User signed in, loading data...');
                 await updateUserUI(session.user);
                 loadTranscriptions();
+                loadSavedPlans();
             } else if (event === 'SIGNED_OUT') {
                 // O usuário fez logout
                 window.location.href = 'login.html';
@@ -297,7 +298,8 @@
                 window.location.href = 'login.html';
             } else {
                 await updateUserUI(session.user);
-                loadTranscriptions(); // Carrega os dados para o usuário já logado
+                loadTranscriptions();
+                loadSavedPlans();
             }
         }
 
@@ -329,8 +331,7 @@
             if (error || !session) {
                 console.error('No session found, redirecting to login.');
                 window.location.href = 'login.html';
-                // Lança um erro para interromper a execução do código que chamou
-                throw new Error('User not authenticated'); 
+                throw new Error('User not authenticated');
             }
 
             const headers = {
@@ -346,27 +347,19 @@
 
         // --- Lógica de Transcrições ---
         async function loadTranscriptions() {
-            // Garante que os dois containers existam antes de tentar acessá-los
-            if (!transcriptionListContainer || !plannerTranscriptionListContainer) {
-                console.error('Transcription list containers not found.');
-                return;
-            }
-
-            const loadingHtml = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Carregando anotações...</p></div>';
-            transcriptionListContainer.innerHTML = loadingHtml;
-            plannerTranscriptionListContainer.innerHTML = loadingHtml;
+            if (!transcriptionListContainer || !plannerTranscriptionListContainer) return;
+            const loadingHtml = '<div class="text-center p-4"><div class="spinner-border text-primary"></div><p class="mt-2">Carregando anotações...</p></div>';
+            [transcriptionListContainer, plannerTranscriptionListContainer].forEach(c => c.innerHTML = loadingHtml);
 
             try {
                 const response = await authedFetch('/.netlify/functions/list-transcriptions');
-                if (!response) return; // Impede a execução se o authedFetch falhar
-
+                if (!response) return;
                 const transcriptions = await response.json();
                 if (!response.ok) throw new Error(transcriptions.error || 'Failed to load transcriptions');
 
+                const emptyMessage = '<p class="text-center text-muted p-3">Nenhuma anotação salva ainda.</p>';
                 if (transcriptions.length === 0) {
-                    const emptyMessage = '<p class="text-center text-muted p-3">Nenhuma anotação salva ainda.</p>';
-                    transcriptionListContainer.innerHTML = emptyMessage;
-                    plannerTranscriptionListContainer.innerHTML = emptyMessage;
+                    [transcriptionListContainer, plannerTranscriptionListContainer].forEach(c => c.innerHTML = emptyMessage);
                     return;
                 }
 
@@ -374,26 +367,57 @@
                 transcriptions.forEach(t => {
                     const typeIcon = t.type === 'audio' ? '<i class="bi bi-mic-fill me-2"></i>' : '<i class="bi bi-file-earmark-text-fill me-2"></i>';
                     listHtml += `
-                        <li class="list-group-item d-flex justify-content-between align-items-center transcription-item bg-transparent text-white">
+                        <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent text-white">
                             <div>
                                 <input class="form-check-input me-2" type="checkbox" value="${t.id}" id="transcription-${t.id}">
                                 <label class="form-check-label fw-bold" for="transcription-${t.id}">${typeIcon}${t.title}</label>
-                                <small class="d-block text-muted">Tipo: ${t.type === 'audio' ? 'Áudio' : 'Texto'} | Criado em: ${new Date(t.created_at).toLocaleString()}</small>
+                                <small class="d-block text-muted">Criado em: ${new Date(t.created_at).toLocaleString()}</small>
                             </div>
                             <div>
-                                <button class="btn btn-sm btn-outline-info view-btn me-2" data-id="${t.id}"><i class="bi bi-eye"></i></button>
-                                <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${t.id}"><i class="bi bi-trash"></i></button>
+                                <button class="btn btn-sm btn-outline-info view-btn me-2" data-id="${t.id}" title="Visualizar"><i class="bi bi-eye"></i></button>
+                                <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${t.id}" title="Excluir"><i class="bi bi-trash"></i></button>
                             </div>
                         </li>`;
                 });
                 listHtml += '</ul>';
-                transcriptionListContainer.innerHTML = listHtml;
-                plannerTranscriptionListContainer.innerHTML = listHtml;
+                [transcriptionListContainer, plannerTranscriptionListContainer].forEach(c => c.innerHTML = listHtml);
             } catch (error) {
                 console.error('Error in loadTranscriptions:', error);
                 const errorMessage = `<div class="alert alert-danger">Erro ao carregar anotações: ${error.message}</div>`;
-                transcriptionListContainer.innerHTML = errorMessage;
-                plannerTranscriptionListContainer.innerHTML = errorMessage;
+                [transcriptionListContainer, plannerTranscriptionListContainer].forEach(c => c.innerHTML = errorMessage);
+            }
+        }
+        
+        // --- Lógica de Planos Salvos ---
+        async function loadSavedPlans() {
+            const savedPlansContainer = document.getElementById('saved-plans-container');
+            if (!savedPlansContainer) return;
+            savedPlansContainer.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Carregando planos...</p></div>';
+
+            try {
+                const response = await authedFetch('/.netlify/functions/list-plans');
+                if (!response) return;
+                const plans = await response.json();
+                if (!response.ok) throw new Error(plans.error || 'Failed to load plans');
+
+                if (plans.length === 0) {
+                    savedPlansContainer.innerHTML = '<p class="text-center text-muted p-3">Nenhum plano de aula salvo ainda.</p>';
+                    return;
+                }
+
+                let listHtml = '<ul class="list-group list-group-flush">';
+                plans.forEach(p => {
+                    listHtml += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent text-white">
+                            <span class="fw-bold">${p.title}</span>
+                            <small class="text-muted">Criado em: ${new Date(p.created_at).toLocaleString()}</small>
+                        </li>`;
+                });
+                listHtml += '</ul>';
+                savedPlansContainer.innerHTML = listHtml;
+            } catch (error) {
+                console.error('Error in loadSavedPlans:', error);
+                savedPlansContainer.innerHTML = `<div class="alert alert-danger">Erro ao carregar planos: ${error.message}</div>`;
             }
         }
 
@@ -405,209 +429,63 @@
                 logout();
             });
 
-            const addRecordTranscriptionBtn = document.getElementById('add-record-transcription-btn');
-            const addTextTranscriptionBtn = document.getElementById('add-text-transcription-btn');
-            const recordBtn = document.getElementById('record-btn');
-            const stopBtn = document.getElementById('stop-btn');
-            const audioFileInput = document.getElementById('audio-file');
-            const transcriptionListContainer = document.getElementById('transcription-list-container');
-            const generateReportBtn = document.getElementById('generate-report-btn');
-            const outputReporter = document.getElementById('output-reporter');
-            const plannerTranscriptionListContainer = document.getElementById('planner-transcription-list-container');
-            const generatePlanBtn = document.getElementById('generate-plan-btn');
-            const outputPlanner = document.getElementById('output-planner');
+            // --- Lógica de Visualização e Exclusão ---
+            const transcriptionContentModal = new bootstrap.Modal(document.getElementById('transcription-content-modal'));
+            const modalTitle = document.getElementById('transcription-content-modal-label');
+            const modalBody = document.getElementById('transcription-content-modal-body');
+            const containers = [plannerTranscriptionListContainer, transcriptionListContainer];
 
-            // --- Lógica para Adicionar Transcrição de Áudio ---
-            addRecordTranscriptionBtn.addEventListener('click', async () => {
-                const title = document.getElementById('record-title').value;
-                const audioFile = audioFileInput.files[0];
+            containers.forEach(container => {
+                if (!container) return;
+                container.addEventListener('click', async (e) => {
+                    const viewBtn = e.target.closest('.view-btn');
+                    const deleteBtn = e.target.closest('.delete-btn');
 
-                if (!title || (!audioFile && !recordedAudioFile)) {
-                    alert('Por favor, forneça um título e um áudio (gravado ou via upload).');
-                    return;
-                }
+                    if (viewBtn) {
+                        const id = viewBtn.dataset.id;
+                        modalTitle.textContent = 'Carregando Anotação...';
+                        modalBody.innerHTML = '<div class="text-center"><div class="spinner-border"></div></div>';
+                        transcriptionContentModal.show();
 
-                addRecordTranscriptionBtn.disabled = true;
-                addRecordTranscriptionBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Adicionando...';
+                        try {
+                            const response = await authedFetch(`/.netlify/functions/get-transcription?id=${id}`);
+                            const data = await response.json();
+                            if (!response.ok) throw new Error(data.error);
 
-                const formData = new FormData();
-                formData.append('title', title);
-                formData.append('type', 'audio');
-                if (recordedAudioFile) {
-                    formData.append('audioFile', recordedAudioFile, 'recording.webm');
-                } else {
-                    formData.append('audioFile', audioFile);
-                }
-
-                try {
-                    const response = await authedFetch('/.netlify/functions/create-transcription', { method: 'POST', body: formData });
-                    const result = await response.json();
-                    if (!response.ok) throw new Error(result.error);
-                    document.getElementById('record-transcription-form').reset();
-                    const recordingStatus = document.getElementById('recording-status');
-                    recordingStatus.innerHTML = '';
-                    recordedAudioFile = null;
-                    bootstrap.Modal.getInstance(document.getElementById('recordModal')).hide();
-                    await loadTranscriptions();
-                } catch (error) {
-                    alert(`Erro ao criar transcrição: ${error.message}`);
-                } finally {
-                    addRecordTranscriptionBtn.disabled = false;
-                    addRecordTranscriptionBtn.innerHTML = '<i class="bi bi-plus-lg me-2"></i>Adicionar à Lista';
-                }
-            });
-
-            // --- Lógica para Adicionar Transcrição de Texto ---
-            addTextTranscriptionBtn.addEventListener('click', async () => {
-                const title = document.getElementById('text-title').value;
-                const content = document.getElementById('text-content').value;
-
-                if (!title || !content) {
-                    alert('Por favor, forneça um título e o conteúdo do texto.');
-                    return;
-                }
-
-                addTextTranscriptionBtn.disabled = true;
-                addTextTranscriptionBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Adicionando...';
-
-                try {
-                    const response = await authedFetch('/.netlify/functions/create-transcription', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ title: title, transcription_text: content, type: 'text' })
-                    });
-                    const result = await response.json();
-                    if (!response.ok) throw new Error(result.error);
-                    document.getElementById('text-transcription-form').reset();
-                    bootstrap.Modal.getInstance(document.getElementById('textModal')).hide();
-                    await loadTranscriptions();
-                } catch (error) {
-                    alert(`Erro ao criar transcrição: ${error.message}`);
-                } finally {
-                    addTextTranscriptionBtn.disabled = false;
-                    addTextTranscriptionBtn.innerHTML = '<i class="bi bi-plus-lg me-2"></i>Adicionar à Lista';
-                }
-            });
-
-            transcriptionListContainer.addEventListener('click', async (e) => {
-                if (e.target.closest('.delete-btn')) {
-                    const btn = e.target.closest('.delete-btn');
-                    const id = btn.dataset.id;
-                    if (!confirm('Tem certeza que deseja excluir esta transcrição?')) return;
-
-                    try {
-                        const response = await authedFetch('/.netlify/functions/delete-transcription', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id })
-                        });
-                        const result = await response.json();
-                        if (!response.ok) throw new Error(result.error);
-                        await loadTranscriptions();
-                    } catch (error) {
-                        alert(`Erro ao excluir: ${error.message}`);
+                            modalTitle.textContent = data.title;
+                            let contentHtml = '';
+                            if (data.type === 'text' && data.transcription_text) {
+                                contentHtml = `<p style="white-space: pre-wrap;">${data.transcription_text}</p>`;
+                            } else if (data.type === 'audio' && data.audio_url) {
+                                contentHtml = `<audio controls src="${data.audio_url}" class="w-100">Seu navegador não suporta o elemento de áudio.</audio>`;
+                            } else {
+                                contentHtml = '<p class="text-muted">Nenhum conteúdo para exibir.</p>';
+                            }
+                            modalBody.innerHTML = contentHtml;
+                        } catch (error) {
+                            modalBody.innerHTML = `<div class="alert alert-danger">Erro ao carregar conteúdo: ${error.message}</div>`;
+                        }
                     }
-                }
+
+                    if (deleteBtn) {
+                        const id = deleteBtn.dataset.id;
+                        if (!confirm('Tem certeza que deseja excluir esta anotação?')) return;
+
+                        try {
+                            const response = await authedFetch('/.netlify/functions/delete-transcription', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ id })
+                            });
+                            if (!response.ok) {
+                                const result = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+                                throw new Error(result.error);
+                            }
+                            loadTranscriptions();
+                        } catch (error) {
+                            alert(`Erro ao excluir: ${error.message}`);
+                        }
+                    }
+                });
             });
-
-            generateReportBtn.addEventListener('click', async () => {
-                const selectedIds = Array.from(transcriptionListContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-                const infoAula = document.getElementById('info-aula').value;
-                const participantes = document.getElementById('participantes').value;
-
-                if (selectedIds.length === 0) {
-                    alert('Selecione pelo menos uma transcrição para gerar o relatório.');
-                    return;
-                }
-
-                generateReportBtn.disabled = true;
-                generateReportBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Compilando...';
-                outputReporter.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Compilando relatório...</p></div>';
-
-                try {
-                    const response = await authedFetch('/.netlify/functions/generate-report', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ transcriptionIds: selectedIds, infoAula, participantes })
-                    });
-                    const resultHtml = await response.text();
-                    if (!response.ok) throw new Error(resultHtml);
-                    outputReporter.innerHTML = `<div class="output-section">${resultHtml}</div>`;
-                } catch (error) {
-                    outputReporter.innerHTML = `<div class="output-section"><div class="alert alert-danger">${error.message}</div></div>`;
-                }
-                finally {
-                    generateReportBtn.disabled = false;
-                    generateReportBtn.innerHTML = '<i class="bi bi-file-earmark-text me-2"></i>Compilar Relatório';
-                }
-            });
-
-            // --- Lógica de Gravação ---
-            let mediaRecorder, audioChunks = [], recordedAudioFile = null;
-            recordBtn.addEventListener('click', async () => {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                    mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        recordedAudioFile = new File([audioBlob], "recording.webm", { type: 'audio/webm' });
-                        const recordingStatus = document.getElementById('recording-status');
-                        recordingStatus.innerHTML = '';
-                        const audioEl = document.createElement('audio');
-                        audioEl.src = URL.createObjectURL(audioBlob);
-                        audioEl.controls = true;
-                        recordingStatus.appendChild(audioEl);
-                        audioChunks = [];
-                    };
-                    audioChunks = [];
-                    recordedAudioFile = null;
-                    mediaRecorder.start();
-                    recordBtn.disabled = true;
-                    stopBtn.disabled = false;
-                    audioFileInput.disabled = true;
-                    const recordingStatus = document.getElementById('recording-status');
-                    recordingStatus.innerHTML = '<span class="text-danger">Gravando...</span>';
-                } catch (err) {
-                    const recordingStatus = document.getElementById('recording-status');
-                    recordingStatus.innerHTML = '<span class="text-danger">Erro ao acessar microfone.</span>';
-                }
-            });
-
-            stopBtn.addEventListener('click', () => {
-                mediaRecorder.stop();
-                recordBtn.disabled = false;
-                stopBtn.disabled = true;
-                audioFileInput.disabled = false;
-            });
-
-            generatePlanBtn.addEventListener('click', async () => {
-                const selectedIds = Array.from(plannerTranscriptionListContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-
-                if (selectedIds.length === 0) {
-                    alert('Selecione pelo menos uma anotação para gerar o plano de aula.');
-                    return;
-                }
-
-                generatePlanBtn.disabled = true;
-                generatePlanBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Gerando...';
-                outputPlanner.innerHTML = '<div class="output-section text-center"><div class="spinner-grow text-primary"></div><p class="mt-2">Analisando... 🧠</p></div>';
-
-                try {
-                    const response = await authedFetch('/.netlify/functions/generate-plan', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ transcriptionIds: selectedIds })
-                    });
-                    const resultHtml = await response.text();
-                    if (!response.ok) throw new Error(resultHtml);
-                    outputPlanner.innerHTML = `<div class="output-section">${resultHtml}</div>`;
-                } catch (error) {
-                    outputPlanner.innerHTML = `<div class="output-section"><div class="alert alert-danger">${error.message}</div></div>`;
-                } finally {
-                    generatePlanBtn.disabled = false;
-                    generatePlanBtn.innerHTML = '<i class="bi bi-magic me-2"></i>Criar Plano de Aula';
-                }
-            });
-        });
                 </body></html>
