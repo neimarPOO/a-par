@@ -86,22 +86,8 @@ async function checkSession() {
             window.location.href = 'login.html';
         }
     } else {
-        // Usuário logado, pode continuar na index
-        console.log('User is logged in.');
-        // Exibir informações do usuário
-        const userEmailSpan = document.getElementById('user-email');
-        const userAvatarImg = document.getElementById('user-avatar');
-        const logoutBtn = document.getElementById('logout-btn');
-
-        if (data.session.user) {
-            userEmailSpan.style.display = 'none'; // Oculta o e-mail
-            
-            const avatarUrl = data.session.user.user_metadata?.avatar_url || data.session.user.user_metadata?.picture;
-            if (avatarUrl) {
-                userAvatarImg.src = avatarUrl;
-                userAvatarImg.style.display = 'inline';
-            }
-            logoutBtn.style.display = 'inline'; // Garante que o botão de sair esteja visível
-        }
+        // Força o logout para limpar a sessão inválida.
+        console.log('Sessão encontrada, forçando logout para limpeza.');
+        logout();
     }
 }
