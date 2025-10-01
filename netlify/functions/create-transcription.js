@@ -1,6 +1,6 @@
 const axios = require('axios');
 const Busboy = require('busboy');
-const { supabaseAdmin } = require('../supabaseClient'); // Usamos o admin para validar o usuário
+const { supabaseAdmin, createSupabaseClient } = require('../supabaseClient');
 
 const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY;
 const assemblyApiUrl = "https://api.assemblyai.com/v2";
@@ -101,7 +101,8 @@ exports.handler = async (event) => {
         }
 
         // 3. Salvar a transcrição/texto no Supabase com o user_id
-        const { data, error: insertError } = await supabaseAdmin
+        const supabase = createSupabaseClient(token);
+        const { data, error: insertError } = await supabase
             .from('transcriptions')
             .insert([{ title: title, transcription_text: transcriptionText, type: type, user_id: user.id }])
             .select();
