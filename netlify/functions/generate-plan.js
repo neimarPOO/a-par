@@ -52,7 +52,7 @@ exports.handler = async (event) => {
         const userInput = `Conteúdo das anotações: ${combinedText}`;
 
         const response = await axios.post(openRouterUrl, {
-            model: "openai/gpt-3.5-turbo",
+            model: "openai/gpt-oss-20b:free",
             messages: [
                 { role: "system", content: lessonPlanPrompt },
                 { role: "user", content: userInput }

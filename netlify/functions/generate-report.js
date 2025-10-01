@@ -46,7 +46,7 @@ ${t.transcription_text}`)
 
         // 3. Generate report with OpenRouter
         const openRouterResponse = await axios.post(openRouterUrl, {
-            model: "openai/gpt-3.5-turbo",
+            model: "openai/gpt-oss-20b:free",
             messages: [
                 { role: "system", content: reportGeneratorPrompt },
                 { role: "user", content: finalPrompt }
