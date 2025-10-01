@@ -503,8 +503,8 @@
                         throw new Error(result.error);
                     }
 
-                    const { plan } = await response.json();
-                    document.getElementById('output-planner').innerHTML = `<div class="output-section"><h3>Plano de Aula Gerado</h3><p style="white-space: pre-wrap;">${plan}</p></div>`;
+                    const plan = await response.text();
+                    document.getElementById('output-planner').innerHTML = `<div class="output-section"><h3>Plano de Aula Gerado</h3>${plan}</div>`;
                 } catch (error) {
                     alert(`Erro ao gerar plano de aula: ${error.message}`);
                 }
@@ -532,8 +532,8 @@
                         throw new Error(result.error);
                     }
 
-                    const { report } = await response.json();
-                    document.getElementById('output-reporter').innerHTML = `<div class="output-section"><h3>Relatório Gerado</h3><p style="white-space: pre-wrap;">${report}</p></div>`;
+                    const report = await response.text();
+                    document.getElementById('output-reporter').innerHTML = `<div class="output-section"><h3>Relatório Gerado</h3>${report}</div>`;
                 } catch (error) {
                     alert(`Erro ao gerar relatório: ${error.message}`);
                 }
