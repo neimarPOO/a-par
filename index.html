@@ -442,6 +442,46 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            let mediaRecorder;
+            let audioChunks = [];
+            let recordedAudioFile;
+
+            const recordBtn = document.getElementById('record-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            const recordingStatus = document.getElementById('recording-status');
+
+            recordBtn.addEventListener('click', async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
+
+                    recordBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    recordingStatus.innerHTML = '<span>Gravando...</span>';
+
+                    mediaRecorder.addEventListener('dataavailable', event => {
+                        audioChunks.push(event.data);
+                    });
+
+                    mediaRecorder.addEventListener('stop', () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        recordedAudioFile = new File([audioBlob], 'recording.wav', { type: 'audio/wav' });
+                        audioChunks = [];
+                        recordBtn.disabled = false;
+                        stopBtn.disabled = true;
+                        recordingStatus.innerHTML = 'Gravação finalizada.';
+                    });
+                } catch (error) {
+                    console.error('Error accessing microphone:', error);
+                    alert('Não foi possível acessar o microfone. Verifique as permissões do seu navegador.');
+                }
+            });
+
+            stopBtn.addEventListener('click', () => {
+                mediaRecorder.stop();
+            });
+
             // --- Lógica do Botão de Logout ---
             document.getElementById('logout-btn').addEventListener('click', () => {
                 sessionStorage.removeItem('transcriptions_planner');
@@ -458,14 +498,16 @@
                 const audioFile = document.getElementById('audio-file').files[0];
                 const type = getActiveTabType();
 
-                if (!title || !audioFile) {
-                    alert('Título e arquivo de áudio são obrigatórios.');
+                const audioToUpload = recordedAudioFile || audioFile;
+
+                if (!title || !audioToUpload) {
+                    alert('Título e um áudio (gravado ou enviado) são obrigatórios.');
                     return;
                 }
 
                 const formData = new FormData();
                 formData.append('title', title);
-                formData.append('audio', audioFile);
+                formData.append('audio', audioToUpload);
                 formData.append('type', type);
 
                 try {
@@ -486,6 +528,9 @@
                         loadTranscriptions(transcriptionListContainer, 'reporter');
                     }
 
+                    recordedAudioFile = null;
+                    document.getElementById('record-title').value = '';
+                    document.getElementById('audio-file').value = '';
                     bootstrap.Modal.getInstance(document.getElementById('recordModal')).hide();
                 } catch (error) {
                     alert(`Erro ao criar transcrição: ${error.message}`);
