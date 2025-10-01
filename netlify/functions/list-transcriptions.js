@@ -12,11 +12,18 @@ exports.handler = async (event) => {
             return { statusCode: 401, body: JSON.stringify({ error: 'Invalid token' }) };
         }
 
-        const { data, error } = await supabaseAdmin
+        const { type } = event.queryStringParameters;
+
+        let query = supabaseAdmin
             .from('transcriptions')
             .select('id, created_at, title, type')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
+            .eq('user_id', user.id);
+
+        if (type) {
+            query = query.eq('type', type);
+        }
+
+        const { data, error } = await query.order('created_at', { ascending: false });
 
         if (error) throw error;
 

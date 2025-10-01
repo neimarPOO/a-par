@@ -285,7 +285,8 @@
                 if (session && session.user) {
                     console.log('User session found, updating UI and loading data.', session.user);
                     await updateUserUI(session.user);
-                    loadTranscriptions();
+                    loadTranscriptions(plannerTranscriptionListContainer, 'planner');
+                    loadTranscriptions(transcriptionListContainer, 'reporter');
                     loadSavedPlans();
                 } else {
                     console.log('No user session, redirecting to login.');
@@ -344,46 +345,58 @@
         const transcriptionListContainer = document.getElementById('transcription-list-container');
 
         // --- Lógica de Transcrições ---
-        async function loadTranscriptions() {
-            if (!transcriptionListContainer || !plannerTranscriptionListContainer) return;
+        async function loadTranscriptions(container, type) {
+            if (!container) return;
+
+            const cachedTranscriptions = sessionStorage.getItem(`transcriptions_${type}`);
+            if (cachedTranscriptions) {
+                displayTranscriptions(container, type, JSON.parse(cachedTranscriptions));
+                return;
+            }
+
             const loadingHtml = '<div class="text-center p-4"><div class="spinner-border text-primary"></div><p class="mt-2">Carregando anotações...</p></div>';
-            [transcriptionListContainer, plannerTranscriptionListContainer].forEach(c => c.innerHTML = loadingHtml);
+            container.innerHTML = loadingHtml;
 
             try {
-                const response = await authedFetch('/.netlify/functions/list-transcriptions');
+                const response = await authedFetch(`/.netlify/functions/list-transcriptions?type=${type}`);
                 if (!response) return;
                 const transcriptions = await response.json();
                 if (!response.ok) throw new Error(transcriptions.error || 'Failed to load transcriptions');
 
-                const emptyMessage = '<p class="text-center text-muted p-3">Nenhuma anotação salva ainda.</p>';
-                if (transcriptions.length === 0) {
-                    [transcriptionListContainer, plannerTranscriptionListContainer].forEach(c => c.innerHTML = emptyMessage);
-                    return;
-                }
-
-                let listHtml = '<ul class="list-group list-group-flush">';
-                transcriptions.forEach(t => {
-                    const typeIcon = t.type === 'audio' ? '<i class="bi bi-mic-fill me-2"></i>' : '<i class="bi bi-file-earmark-text-fill me-2"></i>';
-                    listHtml += `
-                        <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent text-white">
-                            <div>
-                                <input class="form-check-input me-2" type="checkbox" value="${t.id}" id="transcription-${t.id}">
-                                <label class="form-check-label fw-bold" for="transcription-${t.id}">${typeIcon}${t.title}</label>
-                                <small class="d-block text-muted">Criado em: ${new Date(t.created_at).toLocaleString()}</small>
-                            </div>
-                            <div>
-                                <button class="btn btn-sm btn-outline-info view-btn me-2" data-id="${t.id}" title="Visualizar"><i class="bi bi-eye"></i></button>
-                                <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${t.id}" title="Excluir"><i class="bi bi-trash"></i></button>
-                            </div>
-                        </li>`;
-                });
-                listHtml += '</ul>';
-                [transcriptionListContainer, plannerTranscriptionListContainer].forEach(c => c.innerHTML = listHtml);
+                sessionStorage.setItem(`transcriptions_${type}`, JSON.stringify(transcriptions));
+                displayTranscriptions(container, type, transcriptions);
             } catch (error) {
-                console.error('Error in loadTranscriptions:', error);
+                console.error(`Error in loadTranscriptions (type: ${type}):`, error);
                 const errorMessage = `<div class="alert alert-danger">Erro ao carregar anotações: ${error.message}</div>`;
-                [transcriptionListContainer, plannerTranscriptionListContainer].forEach(c => c.innerHTML = errorMessage);
+                container.innerHTML = errorMessage;
             }
+        }
+
+        function displayTranscriptions(container, type, transcriptions) {
+            const emptyMessage = '<p class="text-center text-muted p-3">Nenhuma anotação salva ainda.</p>';
+            if (transcriptions.length === 0) {
+                container.innerHTML = emptyMessage;
+                return;
+            }
+
+            let listHtml = '<ul class="list-group list-group-flush">';
+            transcriptions.forEach(t => {
+                const typeIcon = t.type === 'audio' ? '<i class="bi bi-mic-fill me-2"></i>' : '<i class="bi bi-file-earmark-text-fill me-2"></i>';
+                listHtml += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent text-white">
+                        <div>
+                            <input class="form-check-input me-2" type="checkbox" value="${t.id}" id="transcription-${t.id}">
+                            <label class="form-check-label fw-bold" for="transcription-${t.id}">${typeIcon}${t.title}</label>
+                            <small class="d-block text-muted">Criado em: ${new Date(t.created_at).toLocaleString()}</small>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-info view-btn me-2" data-id="${t.id}" title="Visualizar"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${t.id}" data-type="${type}" title="Excluir"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </li>`;
+            });
+            listHtml += '</ul>';
+            container.innerHTML = listHtml;
         }
         
         // --- Lógica de Planos Salvos ---
@@ -419,10 +432,99 @@
             }
         }
 
+        function getActiveTabType() {
+            const activeTab = document.querySelector('.nav-tabs .nav-link.active');
+            if (activeTab.id === 'tab-planner') {
+                return 'planner';
+            } else {
+                return 'reporter';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             // --- Lógica do Botão de Logout ---
             document.getElementById('logout-btn').addEventListener('click', () => {
+                sessionStorage.removeItem('transcriptions_planner');
+                sessionStorage.removeItem('transcriptions_reporter');
                 logout();
+            });
+
+            // --- Lógica de Adicionar Transcrição ---
+            const addRecordBtn = document.getElementById('add-record-transcription-btn');
+            const addTextBtn = document.getElementById('add-text-transcription-btn');
+
+            addRecordBtn.addEventListener('click', async () => {
+                const title = document.getElementById('record-title').value;
+                const audioFile = document.getElementById('audio-file').files[0];
+                const type = getActiveTabType();
+
+                if (!title || !audioFile) {
+                    alert('Título e arquivo de áudio são obrigatórios.');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('title', title);
+                formData.append('audio', audioFile);
+                formData.append('type', type);
+
+                try {
+                    const response = await authedFetch('/.netlify/functions/create-transcription', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const result = await response.json();
+                        throw new Error(result.error);
+                    }
+
+                    sessionStorage.removeItem(`transcriptions_${type}`);
+                    if (type === 'planner') {
+                        loadTranscriptions(plannerTranscriptionListContainer, 'planner');
+                    } else {
+                        loadTranscriptions(transcriptionListContainer, 'reporter');
+                    }
+
+                    bootstrap.Modal.getInstance(document.getElementById('recordModal')).hide();
+                } catch (error) {
+                    alert(`Erro ao criar transcrição: ${error.message}`);
+                }
+            });
+
+            addTextBtn.addEventListener('click', async () => {
+                const title = document.getElementById('text-title').value;
+                const textContent = document.getElementById('text-content').value;
+                const type = getActiveTabType();
+
+                if (!title || !textContent) {
+                    alert('Título e conteúdo são obrigatórios.');
+                    return;
+                }
+
+                try {
+                    const response = await authedFetch('/.netlify/functions/create-transcription', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title, transcription_text: textContent, type })
+                    });
+
+                    if (!response.ok) {
+                        const result = await response.json();
+                        throw new Error(result.error);
+                    }
+
+                    sessionStorage.removeItem(`transcriptions_${type}`);
+                    if (type === 'planner') {
+                        loadTranscriptions(plannerTranscriptionListContainer, 'planner');
+                    } else {
+                        loadTranscriptions(transcriptionListContainer, 'reporter');
+                    }
+
+                    bootstrap.Modal.getInstance(document.getElementById('textModal')).hide();
+                } catch (error) {
+                    alert(`Erro ao criar transcrição: ${error.message}`);
+                }
             });
 
             // --- Lógica de Visualização e Exclusão ---
@@ -465,6 +567,7 @@
 
                     if (deleteBtn) {
                         const id = deleteBtn.dataset.id;
+                        const type = deleteBtn.dataset.type;
                         if (!confirm('Tem certeza que deseja excluir esta anotação?')) return;
 
                         try {
@@ -477,7 +580,8 @@
                                 const result = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
                                 throw new Error(result.error);
                             }
-                            loadTranscriptions();
+                            sessionStorage.removeItem(`transcriptions_${type}`);
+                            loadTranscriptions(container, type);
                         } catch (error) {
                             alert(`Erro ao excluir: ${error.message}`);
                         }
