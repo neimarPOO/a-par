@@ -66,6 +66,21 @@ exports.handler = async (event) => {
                 return { statusCode: 400, body: JSON.stringify({ error: 'Title and audio file are required' }) };
             }
 
+            const { data: storageData, error: storageError } = await supabaseAdmin.storage
+                .from('audio-files')
+                .upload(`${user.id}/${Date.now()}_${fields.filename}`, fileBuffer, {
+                    contentType: fields.mimeType,
+                    upsert: false
+                });
+
+            if (storageError) throw storageError;
+
+            const { data: publicUrlData } = supabaseAdmin.storage
+                .from('audio-files')
+                .getPublicUrl(storageData.path);
+
+            const audio_url = publicUrlData.publicUrl;
+
             // 2. Transcrever o áudio com AssemblyAI
             const uploadResponse = await axios.post(`${assemblyApiUrl}/upload`, fileBuffer, {
                 headers: { 'authorization': ASSEMBLYAI_API_KEY, 'Content-Type': 'application/octet-stream' }
@@ -100,6 +115,13 @@ exports.handler = async (event) => {
             }
             transcriptionText = pollingTranscriptionText;
 
+            // 3. Salvar a transcrição/texto no Supabase com o user_id
+            const supabase = createSupabaseClient(token);
+            const { data, error: insertError } = await supabase
+                .from('transcriptions')
+                .insert([{ title: title, transcription_text: transcriptionText, type: type, user_id: user.id, audio_url: audio_url }])
+                .select();
+
         } else if (event.headers['content-type'] && event.headers['content-type'].includes('application/json')) {
             // Requisição de texto (application/json)
             const body = JSON.parse(event.body);
@@ -110,16 +132,13 @@ exports.handler = async (event) => {
             if (!title || !transcriptionText) {
                 return { statusCode: 400, body: JSON.stringify({ error: 'Title and text content are required' }) };
             }
-        } else {
-            return { statusCode: 400, body: JSON.stringify({ error: 'Unsupported Content-Type' }) };
-        }
 
-        // 3. Salvar a transcrição/texto no Supabase com o user_id
-        const supabase = createSupabaseClient(token);
-        const { data, error: insertError } = await supabase
-            .from('transcriptions')
-            .insert([{ title: title, transcription_text: transcriptionText, type: type, user_id: user.id }])
-            .select();
+            // 3. Salvar a transcrição/texto no Supabase com o user_id
+            const supabase = createSupabaseClient(token);
+            const { data, error: insertError } = await supabase
+                .from('transcriptions')
+                .insert([{ title: title, transcription_text: transcriptionText, type: type, user_id: user.id, audio_url: null }])
+                .select();
 
         if (insertError) throw insertError;
 
