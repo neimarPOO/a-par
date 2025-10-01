@@ -144,7 +144,7 @@
                             <i class="bi bi-mic-fill" style="font-size: 2rem;"></i>
                             <span style="font-size: 0.8rem;">Gravar</span>
                         </button>
-                        <button type="button" class="btn btn-secondary btn-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#textModal" style="width: 100px; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <button type="button" class="btn btn-secondary btn-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#textModal" style="width: 100px; height: 100px; display: flex; flex-direction: column; align-items-center; justify-content: center;">
                             <i class="bi bi-file-earmark-text-fill" style="font-size: 2rem;"></i>
                             <span style="font-size: 0.8rem;">Texto</span>
                         </button>
@@ -174,11 +174,11 @@
                 <div class="card p-4 p-md-5 mt-3 text-center">
                     <h2 class="h4 mb-4 fw-bold" style="color: #ffffff;">1. Crie ou adicione um registro de aula</h2>
                     <div class="d-flex justify-content-center gap-3 mt-3">
-                        <button type="button" class="btn btn-primary btn-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#recordModal" style="width: 100px; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <button type="button" class="btn btn-primary btn-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#recordModal" style="width: 100px; height: 100px; display: flex; flex-direction: column; align-items-center; justify-content: center;">
                             <i class="bi bi-mic-fill" style="font-size: 2rem;"></i>
                             <span style="font-size: 0.8rem;">Gravar</span>
                         </button>
-                        <button type="button" class="btn btn-secondary btn-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#textModal" style="width: 100px; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <button type="button" class="btn btn-secondary btn-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#textModal" style="width: 100px; height: 100px; display: flex; flex-direction: column; align-items-center; justify-content: center;">
                             <i class="bi bi-file-earmark-text-fill" style="font-size: 2rem;"></i>
                             <span style="font-size: 0.8rem;">Texto</span>
                         </button>
@@ -275,8 +275,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="auth.js" defer></script>
-    <script defer>
+    <script src="auth.js"></script>
+    <script>
         // --- Lógica de Autenticação e Carregamento de Dados ---
 
         const handleAuthChange = async (event, session) => {
@@ -298,8 +298,6 @@
         };
 
         _supabase.auth.onAuthStateChange(handleAuthChange);
-
-
 
         async function updateUserUI(user) {
             console.log('Updating UI for user:', user);
@@ -421,7 +419,6 @@
             }
         }
 
-
         document.addEventListener('DOMContentLoaded', () => {
             // --- Lógica do Botão de Logout ---
             document.getElementById('logout-btn').addEventListener('click', () => {
@@ -489,4 +486,5 @@
             });
         });
     </script>
-</body></html>
+</body>
+</html>
