@@ -280,15 +280,19 @@
         // --- Lógica de Autenticação e Carregamento de Dados ---
 
         const handleAuthChange = async (event, session) => {
+            console.log(`Auth event: ${event}`, session);
             if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
                 if (session && session.user) {
+                    console.log('User session found, updating UI and loading data.', session.user);
                     await updateUserUI(session.user);
                     loadTranscriptions();
                     loadSavedPlans();
                 } else {
+                    console.log('No user session, redirecting to login.');
                     window.location.href = 'login.html';
                 }
             } else if (event === 'SIGNED_OUT') {
+                console.log('User signed out, redirecting to login.');
                 window.location.href = 'login.html';
             }
         };
@@ -297,16 +301,19 @@
 
         // Verifica a sessão inicial no carregamento da página
         async function initializePage() {
+            console.log('Initializing page and checking for session...');
             const { data: { session }, error } = await _supabase.auth.getSession();
             if (error) {
                 console.error("Error getting session:", error);
                 window.location.href = 'login.html';
                 return;
             }
+            console.log('Initial session object:', session);
             handleAuthChange('INITIAL_SESSION', session);
         }
 
         async function updateUserUI(user) {
+            console.log('Updating UI for user:', user);
             const userAvatar = document.getElementById('user-avatar');
             const userEmail = document.getElementById('user-email');
             const logoutBtn = document.getElementById('logout-btn');

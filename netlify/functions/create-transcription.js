@@ -23,8 +23,12 @@ function parseMultipartForm(event) {
 }
 
 exports.handler = async (event) => {
+    console.log('Create-transcription function invoked.');
     const token = event.headers.authorization?.replace('Bearer ', '');
+    console.log('Auth token received:', token ? `${token.substring(0, 10)}...` : 'No token');
+
     if (!token) {
+        console.error('No auth token provided.');
         return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
     }
 
@@ -34,10 +38,20 @@ exports.handler = async (event) => {
 
     try {
         // 1. Validar o token e obter o usuário
+        console.log('Validating token with Supabase...');
         const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+        
+        if (userError) {
+            console.error('Supabase user validation error:', userError.message);
+        }
+        if (!user) {
+            console.error('Supabase user not found for token.');
+        }
+
         if (userError || !user) {
             return { statusCode: 401, body: JSON.stringify({ error: 'Invalid token' }) };
         }
+        console.log('Supabase user validated:', user.id);
 
         let title, transcriptionText, type;
 
