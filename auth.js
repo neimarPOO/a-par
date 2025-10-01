@@ -83,9 +83,8 @@ async function checkSession() {
     const { data: { session }, error } = await _supabase.auth.getSession();
 
     if (error || !session) {
-        if (!window.location.pathname.endsWith('login.html')) {
-            window.location.href = 'login.html';
-        }
+        // Não redireciona mais, apenas informa que não há sessão
+        return null;
     } else {
         // Sessão válida, exibe informações do usuário
         const user = session.user;
@@ -102,5 +101,14 @@ async function checkSession() {
                 userEmail.style.display = 'block';
             }
         }
+        return session;
+    }
+}
+
+// --- Redirecionamento (para index.html) ---
+async function handleRedirect() {
+    const session = await checkSession();
+    if (!session) {
+        window.location.href = 'login.html';
     }
 }
