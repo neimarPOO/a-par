@@ -19,8 +19,10 @@ exports.handler = async (event) => {
             .select('id, created_at, title, type')
             .eq('user_id', user.id);
 
-        if (type) {
-            query = query.eq('type', type);
+        if (type === 'planner') {
+            query = query.eq('type', 'planner');
+        } else if (type === 'reporter') {
+            query = query.not('type', 'eq', 'planner');
         }
 
         const { data, error } = await query.order('created_at', { ascending: false });

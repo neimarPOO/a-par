@@ -60,7 +60,7 @@ exports.handler = async (event) => {
             // Requisição de áudio (multipart/form-data)
             const { fields, fileBuffer } = await parseMultipartForm(event);
             title = fields.title;
-            type = fields.type || 'audio'; // Assume 'audio' se não especificado
+            type = fields.type;
 
             if (!title || !fileBuffer) {
                 return { statusCode: 400, body: JSON.stringify({ error: 'Title and audio file are required' }) };
@@ -105,7 +105,7 @@ exports.handler = async (event) => {
             const body = JSON.parse(event.body);
             title = body.title;
             transcriptionText = body.transcription_text;
-            type = body.type || 'text'; // Assume 'text' se não especificado
+            type = body.type;
 
             if (!title || !transcriptionText) {
                 return { statusCode: 400, body: JSON.stringify({ error: 'Title and text content are required' }) };
