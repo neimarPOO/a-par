@@ -278,34 +278,38 @@
     <script src="auth.js" defer></script>
     <script defer>
         // --- Lógica de Autenticação e Carregamento de Dados ---
-        _supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN') {
-                // O usuário acabou de fazer login
-                console.log('User signed in, loading data...');
-                await updateUserUI(session.user);
-                loadTranscriptions();
-                loadSavedPlans();
+
+        const handleAuthChange = async (event, session) => {
+            if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+                if (session && session.user) {
+                    await updateUserUI(session.user);
+                    loadTranscriptions();
+                    loadSavedPlans();
+                } else {
+                    window.location.href = 'login.html';
+                }
             } else if (event === 'SIGNED_OUT') {
-                // O usuário fez logout
                 window.location.href = 'login.html';
             }
-        });
+        };
+
+        _supabase.auth.onAuthStateChange(handleAuthChange);
 
         // Verifica a sessão inicial no carregamento da página
-        async function initialSessionCheck() {
+        async function initializePage() {
             const { data: { session }, error } = await _supabase.auth.getSession();
-            if (error || !session) {
+            if (error) {
+                console.error("Error getting session:", error);
                 window.location.href = 'login.html';
-            } else {
-                await updateUserUI(session.user);
-                loadTranscriptions();
-                loadSavedPlans();
+                return;
             }
+            handleAuthChange('INITIAL_SESSION', session);
         }
 
         async function updateUserUI(user) {
             const userAvatar = document.getElementById('user-avatar');
             const userEmail = document.getElementById('user-email');
+            const logoutBtn = document.getElementById('logout-btn');
 
             if (user) {
                 if (user.user_metadata && user.user_metadata.avatar_url) {
@@ -316,11 +320,11 @@
                     userEmail.textContent = user.email;
                     userEmail.style.display = 'block';
                 }
-                document.getElementById('logout-btn').style.display = 'block';
+                logoutBtn.style.display = 'block';
             } else {
                 userAvatar.style.display = 'none';
                 userEmail.style.display = 'none';
-                document.getElementById('logout-btn').style.display = 'none';
+                logoutBtn.style.display = 'none';
             }
         }
 
@@ -422,7 +426,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            handleRedirect();
+            initializePage();
 
             // --- Lógica do Botão de Logout ---
             document.getElementById('logout-btn').addEventListener('click', () => {
