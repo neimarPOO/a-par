@@ -299,18 +299,7 @@
 
         _supabase.auth.onAuthStateChange(handleAuthChange);
 
-        // Verifica a sessão inicial no carregamento da página
-        async function initializePage() {
-            console.log('Initializing page and checking for session...');
-            const { data: { session }, error } = await _supabase.auth.getSession();
-            if (error) {
-                console.error("Error getting session:", error);
-                window.location.href = 'login.html';
-                return;
-            }
-            console.log('Initial session object:', session);
-            handleAuthChange('INITIAL_SESSION', session);
-        }
+
 
         async function updateUserUI(user) {
             console.log('Updating UI for user:', user);
@@ -432,9 +421,8 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initializePage();
 
+        document.addEventListener('DOMContentLoaded', () => {
             // --- Lógica do Botão de Logout ---
             document.getElementById('logout-btn').addEventListener('click', () => {
                 logout();
@@ -499,4 +487,6 @@
                     }
                 });
             });
-                </body></html>
+        });
+    </script>
+</body></html>
