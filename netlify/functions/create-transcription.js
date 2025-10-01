@@ -10,14 +10,16 @@ function parseMultipartForm(event) {
     return new Promise((resolve) => {
         const fields = {};
         let fileBuffer;
+        let filename;
         const busboy = Busboy({ headers: event.headers });
-        busboy.on('file', (fieldname, file, { filename, encoding, mimeType }) => {
+        busboy.on('file', (fieldname, file, { filename: fname, encoding, mimeType }) => {
+            filename = fname;
             const chunks = [];
             file.on('data', (chunk) => chunks.push(chunk));
             file.on('end', () => fileBuffer = Buffer.concat(chunks));
         });
         busboy.on('field', (fieldname, val) => fields[fieldname] = val);
-        busboy.on('close', () => resolve({ fields, fileBuffer }));
+        busboy.on('close', () => resolve({ fields, fileBuffer, filename }));
         busboy.end(Buffer.from(event.body, 'base64'));
     });
 }
@@ -47,10 +49,10 @@ exports.handler = async (event) => {
 
         if (event.headers['content-type'] && event.headers['content-type'].includes('multipart/form-data')) {
             console.log('Processing multipart/form-data for audio upload...');
-            const { fields, fileBuffer } = await parseMultipartForm(event);
+            const { fields, fileBuffer, filename } = await parseMultipartForm(event);
             title = fields.title;
             type = fields.type;
-            console.log(`Received fields: title=${title}, type=${type}`);
+            console.log(`Received fields: title=${title}, type=${type}, filename=${filename}`);
 
             if (!title || !fileBuffer) {
                 console.error('Missing title or audio file.');
@@ -60,7 +62,7 @@ exports.handler = async (event) => {
             console.log(`Uploading audio file to Supabase Storage... File size: ${fileBuffer.length} bytes`);
             const { data: storageData, error: storageError } = await supabaseAdmin.storage
                 .from('audio-files')
-                .upload(`${user.id}/${Date.now()}_${fields.filename}`, fileBuffer, {
+                .upload(`${user.id}/${Date.now()}_${filename}`, fileBuffer, {
                     contentType: fields.mimeType,
                     upsert: false
                 });

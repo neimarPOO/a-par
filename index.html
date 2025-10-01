@@ -654,10 +654,10 @@
 
                             modalTitle.textContent = data.title;
                             let contentHtml = '';
-                            if (data.type === 'text' && data.transcription_text) {
-                                contentHtml = `<p style="white-space: pre-wrap;">${data.transcription_text}</p>`;
-                            } else if (data.type === 'audio' && data.audio_url) {
+                            if (data.audio_url) {
                                 contentHtml = `<audio controls src="${data.audio_url}" class="w-100">Seu navegador não suporta o elemento de áudio.</audio>`;
+                            } else if (data.transcription_text) {
+                                contentHtml = `<p style="white-space: pre-wrap;">${data.transcription_text}</p>`;
                             } else {
                                 contentHtml = '<p class="text-muted">Nenhum conteúdo para exibir.</p>';
                             }
