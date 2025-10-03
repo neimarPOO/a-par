@@ -9,105 +9,162 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playpen+Sans:wght@100..800&family=Rubik:ital,wght@0,300..900;1,300..900&family=SUSE+Mono:ital,wght@0,100..800;1,100..800&family=Story+Script&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@200..700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --bs-primary: #f47b20; /* Laranja para destaque */
-            --bs-primary-rgb: 244, 123, 32;
-            --bs-secondary-color: #ffffff; /* Branco para textos */
-            --bs-body-font-family: 'Rubik', 'Playpen Sans', sans-serif;
-            --bs-body-bg: #1a1a2e; /* Azul escuro para fundo */
-            --bs-dark: #ffffff; /* Textos escuros agora são brancos */
+            --primary: #f47b20;
+            --primary-rgb: 244, 123, 32;
+            --secondary-color: #333;
+            --body-font-family: 'Libre Baskerville', serif;
+            --heading-font-family: 'Oswald', sans-serif;
+            --body-bg: #f0f2f5;
+            --dark: #333;
+            --card-bg: #ffffff;
+            --nav-tabs-border: #dee2e6;
+            --nav-tabs-link-hover-bg: #f8f9fa;
+            --output-section-border: #dee2e6;
+            --footer-border: #dee2e6;
+            --form-control-bg: #ffffff;
+            --form-control-border: #ced4da;
+            --form-control-focus-border: var(--primary);
+            --form-label-color: #6c757d;
+            --alert-danger-bg: #f8d7da;
+            --alert-danger-color: #721c24;
+            --alert-danger-border: #f5c6cb;
+            --text-muted-color: #6c757d;
+            --transcription-item-hover-bg: #f8f9fa;
         }
+
+        [data-theme="dark"] {
+            --secondary-color: #ffffff;
+            --body-bg: #1a1a2e;
+            --dark: #ffffff;
+            --card-bg: #2a2a3e;
+            --nav-tabs-border: #3a3a4e;
+            --nav-tabs-link-hover-bg: #2a2a3e;
+            --output-section-border: #3a3a4e;
+            --footer-border: #3a3a4e;
+            --form-control-bg: #3a3a4e;
+            --form-control-border: #4a4a5e;
+            --form-control-focus-border: var(--primary);
+            --form-label-color: #aaa;
+            --alert-danger-bg: #4a2a2a;
+            --alert-danger-color: #ffaaaa;
+            --alert-danger-border: #6a3a3a;
+            --text-muted-color: #bbb;
+            --transcription-item-hover-bg: #3a3a4e;
+        }
+
         body { 
-            font-family: var(--bs-body-font-family);
-            background-color: var(--bs-body-bg) !important; /* Fundo azul escuro */
-            color: var(--bs-secondary-color); /* Textos brancos */
+            font-family: var(--body-font-family);
+            background-color: var(--body-bg) !important;
+            color: var(--secondary-color);
         }
-        .navbar-brand { font-weight: 700; font-size: 1.75rem; color: var(--bs-primary) !important; } /* Marca em laranja */
-        .nav-tabs { border-bottom: 1px solid #3a3a4e; margin-bottom: 1rem; } /* Borda inferior para as abas */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--heading-font-family);
+        }
+        .navbar-brand { font-weight: 700; font-size: 1.75rem; color: var(--primary) !important; } /* Marca em laranja */
+        .nav-tabs { border-bottom: 1px solid var(--nav-tabs-border); margin-bottom: 1rem; } /* Borda inferior para as abas */
         .nav-tabs .nav-item { margin-bottom: -1px; } /* Ajuste para a borda */
-        .nav-tabs .nav-link { color: var(--bs-secondary-color); font-weight: 500; border: 1px solid transparent; border-top-left-radius: 0.25rem; border-top-right-radius: 0.25rem; transition: all 0.3s ease; }
-        .nav-tabs .nav-link:hover:not(.active) { color: var(--bs-primary); border-color: #3a3a4e #3a3a4e #2a2a3e; background-color: #2a2a3e; }
-        .nav-tabs .nav-link.active { color: var(--bs-primary); background-color: var(--bs-body-bg); border-color: #3a3a4e #3a3a4e var(--bs-body-bg); font-weight: 600; } /* Aba ativa em laranja */
-        .card { border: none; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3); background-color: #2a2a3e; color: var(--bs-secondary-color); } /* Cards mais escuros */
-        .btn { font-weight: 600; padding: 0.5rem 1rem; transition: all 0.3s ease; }
-        .btn-primary { background-color: var(--bs-primary); border-color: var(--bs-primary); }
+        .nav-tabs .nav-link { color: var(--dark); font-weight: 500; border: 1px solid transparent; border-top-left-radius: 0.25rem; border-top-right-radius: 0.25rem; transition: all 0.3s ease; }
+        .nav-tabs .nav-link:hover:not(.active) { color: var(--primary); border-color: var(--nav-tabs-border) var(--nav-tabs-border) var(--body-bg); background-color: var(--nav-tabs-link-hover-bg); }
+        .nav-tabs .nav-link.active { color: var(--primary); background-color: var(--body-bg); border-color: var(--nav-tabs-border) var(--nav-tabs-border) var(--body-bg); font-weight: 600; } /* Aba ativa em laranja */
+        .card { border: none; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); background-color: var(--card-bg); color: var(--dark); border-radius: 1rem; } /* Cards com fundo branco e arredondados */
+        .btn { font-weight: 600; padding: 0.5rem 1rem; transition: all 0.3s ease; border-radius: 0.5rem; }
+        .btn-primary { background-color: var(--primary); border-color: var(--primary); }
         .btn-primary:hover { background-color: #e06a10; border-color: #e06a10; }
-        .btn-outline-secondary { color: var(--bs-primary); border-color: var(--bs-primary); }
-        .btn-outline-secondary:hover { background-color: var(--bs-primary); color: #fff; }
+        .btn-outline-secondary { color: var(--primary); border-color: var(--primary); }
+        .btn-outline-secondary:hover { background-color: var(--primary); color: #fff; }
         .output-section, .transcription-list {
-            background-color: #2a2a3e;
-            border-radius: 0.5rem;
+            background-color: var(--card-bg);
+            border-radius: 1rem;
             padding: 2rem;
             margin-top: 2rem;
-            border: 1px solid #3a3a4e;
+            border: 1px solid var(--output-section-border);
             animation: fadeIn 0.5s ease-in-out;
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .output-section h3 { font-size: 1.5rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 1rem; color: var(--bs-primary); border-bottom: 2px solid var(--bs-primary); padding-bottom: 0.5rem; }
-        .footer { background-color: #2a2a3e; padding: 2rem 0; margin-top: 4rem; border-top: 1px solid #3a3a4e; }
+        .output-section h3 { font-size: 1.5rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 1rem; color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; }
+        .footer { background-color: var(--card-bg); padding: 2rem 0; margin-top: 4rem; border-top: 1px solid var(--footer-border); }
         .footer-logo { max-height: 60px; opacity: 0.8; transition: opacity 0.3s ease; }
         .footer-logo:hover { opacity: 1; }
-        #recording-status span { animation: pulse 1.5s infinite ease-in-out; color: var(--bs-primary); }
+        #recording-status span { animation: pulse 1.5s infinite ease-in-out; color: var(--primary); }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        .transcription-item:hover { background-color: #3a3a4e; }
+        .transcription-item:hover { background-color: var(--transcription-item-hover-bg); }
         .form-floating > .form-control, .form-floating > .form-control-plaintext, .form-floating > .form-select {
-            background-color: #3a3a4e;
-            color: var(--bs-secondary-color);
-            border-color: #4a4a5e;
+            background-color: var(--form-control-bg);
+            color: var(--dark);
+            border-color: var(--form-control-border);
+            border-radius: 0.5rem;
         }
         .form-floating > label {
-            color: #aaa;
+            color: var(--form-label-color);
         }
         .form-control:focus {
-            background-color: #3a3a4e;
-            color: var(--bs-secondary-color);
-            border-color: var(--bs-primary);
-            box-shadow: 0 0 0 0.25rem rgba(244, 123, 32, 0.25);
+            background-color: var(--form-control-bg);
+            color: var(--dark);
+            border-color: var(--form-control-focus-border);
+            box-shadow: 0 0 0 0.25rem rgba(var(--primary-rgb), 0.25);
         }
         .form-check-input:checked {
-            background-color: var(--bs-primary);
-            border-color: var(--bs-primary);
+            background-color: var(--primary);
+            border-color: var(--primary);
         }
         .alert-danger {
-            background-color: #4a2a2a;
-            color: #ffaaaa;
-            border-color: #6a3a3a;
+            background-color: var(--alert-danger-bg);
+            color: var(--alert-danger-color);
+            border-color: var(--alert-danger-border);
         }
         .text-muted {
-            color: #bbb !important;
+            color: var(--text-muted-color) !important;
         }
 
-        /* Responsividade */
+        .modal-content {
+            border-radius: 1rem;
+            background-color: var(--card-bg);
+        }
+
+        .theme-toggle {
+            background: transparent;
+            border: none;
+            color: var(--secondary-color);
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+
         @media (max-width: 768px) {
+            header .d-flex.justify-content-center {
+                flex-direction: column;
+                align-items: center;
+            }
+            header .d-flex.align-items-center.position-absolute.end-0 {
+                position: static !important;
+                margin-top: 1rem;
+            }
             .navbar-brand { font-size: 1.5rem; }
             .nav-tabs .nav-link { font-size: 0.9rem; padding: 0.5rem 0.75rem; }
             .card { padding: 1.5rem !important; }
             .output-section, .transcription-list { padding: 1.5rem; }
             .footer { padding: 1.5rem 0; }
-            #user-info { position: static !important; margin-top: 10px; justify-content: center; }
-            #logout-btn { position: static !important; margin-top: 10px; }
-            .d-flex.justify-content-center.align-items-center.position-relative {
-                flex-direction: column;
-            }
         }
     </style>
 </head>
 <body class="">
 
     <header class="py-4">
-        <div class="container text-center">
+        <div class="container">
             <div class="d-flex justify-content-center align-items-center position-relative">
-                <img src="logo_apar.png" alt="Logo A-par" class="navbar-brand" style="max-height: 60px;">
-                <div id="user-info" class="d-flex align-items-center ms-3 me-3" style="position: absolute; right: 100px;">
-                    <img id="user-avatar" src="" alt="Avatar" class="rounded-circle me-2" style="width: 32px; height: 32px; display: none;">
-                    <span id="user-email" class="fw-bold text-dark me-3" style="display: none;"></span>
+                <img src="logo_apar.png" alt="Logo A-par" class="navbar-brand" style="max-height: 180px;">
+                <div class="d-flex align-items-center position-absolute end-0">
+                    <button id="theme-toggle-btn" class="theme-toggle me-3"><i class="bi bi-sun-fill"></i></button>
+                    <div id="user-info" class="d-flex align-items-center">
+                        <img id="user-avatar" src="" alt="Avatar" class="rounded-circle me-2" style="width: 32px; height: 32px; display: none;">
+                        <span id="user-email" class="fw-bold text-dark me-3" style="display: none;"></span>
+                    </div>
+                    <button id="logout-btn" class="btn btn-sm btn-outline-secondary">Sair</button>
                 </div>
-                <button id="logout-btn" class="btn btn-sm btn-outline-secondary position-absolute" style="right: 0;">Sair</button>
             </div>
-            <p class="text-muted">Assistente de Planejamento de Aulas e Relatórios</p>
         </div>
     </header>
 
@@ -138,7 +195,7 @@
             </div>
             <div class="tab-pane fade show active" id="content-planner" role="tabpanel">
                 <div class="card p-4 p-md-5 mt-3 text-center">
-                    <h2 class="h4 mb-4 fw-bold" style="color: #ffffff;">1. Forneça os Detalhes da Aula</h2>
+                    <h2 class="h4 mb-4 fw-bold">1. Forneça os Detalhes da Aula</h2>
                     <div class="d-flex justify-content-center gap-3 mt-3">
                         <button type="button" class="btn btn-primary btn-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#recordModal" style="width: 100px; height: 100px; display: flex; flex-direction: column; align-items-center; justify-content: center;">
                             <i class="bi bi-mic-fill" style="font-size: 2rem;"></i>
@@ -151,7 +208,7 @@
                     </div>
                 </div>
                 <div class="card p-4 p-md-5 mt-4">
-                    <h2 class="h4 mb-4 fw-bold" style="color: #ffffff;">2. Crie um Plano de Aula a Partir de Suas Anotações</h2>
+                    <h2 class="h4 mb-4 fw-bold">2. Crie um Plano de Aula a Partir de Suas Anotações</h2>
                     <div id="planner-transcription-list-container" class="transcription-list p-0">
                         <div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Carregando anotações...</p></div>
                     </div>
@@ -163,7 +220,7 @@
                 <div id="output-planner"></div>
 
                 <div class="card p-4 p-md-5 mt-4">
-                    <h2 class="h4 mb-4 fw-bold" style="color: #ffffff;">3. Planos de Aula Salvos</h2>
+                    <h2 class="h4 mb-4 fw-bold">3. Planos de Aula Salvos</h2>
                     <div id="saved-plans-container" class="p-0">
                         <div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Carregando planos salvos...</p></div>
                     </div>
@@ -172,7 +229,7 @@
 
             <div class="tab-pane fade" id="content-reporter" role="tabpanel">
                 <div class="card p-4 p-md-5 mt-3 text-center">
-                    <h2 class="h4 mb-4 fw-bold" style="color: #ffffff;">1. Crie ou adicione um registro de aula</h2>
+                    <h2 class="h4 mb-4 fw-bold">1. Crie ou adicione um registro de aula</h2>
                     <div class="d-flex justify-content-center gap-3 mt-3">
                         <button type="button" class="btn btn-primary btn-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#recordModal" style="width: 100px; height: 100px; display: flex; flex-direction: column; align-items-center; justify-content: center;">
                             <i class="bi bi-mic-fill" style="font-size: 2rem;"></i>
@@ -186,7 +243,7 @@
                 </div>
 
                 <div class="card p-4 p-md-5 mt-4">
-                    <h2 class="h4 mb-4 fw-bold" style="color: #ffffff;">2. Compilar Relatório a Partir de Transcrições</h2>
+                    <h2 class="h4 mb-4 fw-bold">2. Compilar Relatório a Partir de Transcrições</h2>
                     <div id="transcription-list-container" class="transcription-list p-0">
                         <div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Carregando transcrições...</p></div>
                     </div>
@@ -383,7 +440,7 @@
             transcriptions.forEach(t => {
                 const typeIcon = t.type === 'audio' ? '<i class="bi bi-mic-fill me-2"></i>' : '<i class="bi bi-file-earmark-text-fill me-2"></i>';
                 listHtml += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent text-white">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
                             <input class="form-check-input me-2" type="checkbox" value="${t.id}" id="transcription-${t.id}">
                             <label class="form-check-label fw-bold" for="transcription-${t.id}">${typeIcon}${t.title}</label>
@@ -419,7 +476,7 @@
                 let listHtml = '<ul class="list-group list-group-flush">';
                 plans.forEach(p => {
                     listHtml += `
-                        <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent text-white">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span class="fw-bold">${p.title}</span>
                             <small class="text-muted">Criado em: ${new Date(p.created_at).toLocaleString()}</small>
                         </li>`;
@@ -691,6 +748,27 @@
                 });
             });
         });
+    </script>
+    <script>
+        // --- Lógica de Alternância de Tema ---
+        const themeToggleBtn = document.getElementById('theme-toggle-btn');
+        const body = document.body;
+
+        const applyTheme = (theme) => {
+            body.dataset.theme = theme;
+            const icon = theme === 'dark' ? 'bi-moon-fill' : 'bi-sun-fill';
+            themeToggleBtn.innerHTML = `<i class="bi ${icon}"></i>`;
+            localStorage.setItem('theme', theme);
+        };
+
+        themeToggleBtn.addEventListener('click', () => {
+            const newTheme = body.dataset.theme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+        });
+
+        // Aplica o tema salvo ao carregar a página
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
     </script>
 </body>
 </html>
