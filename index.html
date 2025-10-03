@@ -135,21 +135,51 @@
             cursor: pointer;
         }
 
+        .user-email-text {
+            display: none !important;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--secondary-color);
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+
+        .list-group-item > div:first-child {
+            flex-grow: 1;
+        }
+
+        .list-group-item > div:last-child {
+            min-width: 80px;
+            text-align: right;
+        }
+
         @media (max-width: 768px) {
             header .d-flex.justify-content-center {
                 flex-direction: column;
-                align-items: center;
             }
-            header .d-flex.align-items-center.position-absolute.end-0 {
+            header .position-absolute {
                 position: static !important;
                 margin-top: 1rem;
             }
-            #user-email { display: none !important; }
-            .navbar-brand { font-size: 1.5rem; }
-            .nav-tabs .nav-link { font-size: 0.9rem; padding: 0.5rem 0.75rem; }
-            .card { padding: 1.5rem !important; }
-            .output-section, .transcription-list { padding: 1.5rem; }
-            .footer { padding: 1.5rem 0; }
+            .navbar-brand {
+                font-size: 1.5rem;
+            }
+            .nav-tabs .nav-link {
+                font-size: 0.9rem;
+                padding: 0.5rem 0.75rem;
+            }
+            .card {
+                padding: 1.5rem !important;
+            }
+            .output-section, .transcription-list {
+                padding: 1.5rem;
+            }
+            .footer {
+                padding: 1.5rem 0;
+            }
         }
     </style>
 </head>
@@ -163,7 +193,7 @@
                     <button id="theme-toggle-btn" class="theme-toggle me-3"><i class="bi bi-sun-fill"></i></button>
                     <div id="user-info" class="d-flex align-items-center">
                         <img id="user-avatar" src="" alt="Avatar" class="rounded-circle me-2" style="width: 32px; height: 32px; display: none;">
-                        <span id="user-email" class="fw-bold text-dark me-3" style="display: none;"></span>
+                        <span id="user-email" class="fw-bold text-dark me-3 user-email-text" style="display: none;"></span>
                     </div>
                     <button id="logout-btn" class="btn btn-sm btn-outline-secondary">Sair</button>
                 </div>
@@ -450,8 +480,8 @@
                             <small class="d-block text-muted">Criado em: ${new Date(t.created_at).toLocaleString()}</small>
                         </div>
                         <div>
-                            <button class="btn btn-sm btn-outline-info view-btn me-2" data-id="${t.id}" title="Visualizar"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${t.id}" data-type="${type}" title="Excluir"><i class="bi bi-trash"></i></button>
+                            <button class="icon-btn view-btn me-2" data-id="${t.id}" title="Visualizar"><i class="bi bi-eye"></i></button>
+                            <button class="icon-btn delete-btn" data-id="${t.id}" data-type="${type}" title="Excluir"><i class="bi bi-trash"></i></button>
                         </div>
                     </li>`;
             });
