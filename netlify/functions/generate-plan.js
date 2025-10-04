@@ -33,10 +33,14 @@ exports.handler = async (event) => {
             return { statusCode: 401, body: JSON.stringify({ error: 'Invalid token' }) };
         }
 
-        const { transcriptionIds } = JSON.parse(event.body);
+        const { transcriptionIds, title } = JSON.parse(event.body);
 
         if (!transcriptionIds || transcriptionIds.length === 0) {
             return { statusCode: 400, body: '<p style="color: red;">Erro: Nenhuma anotação selecionada.</p>' };
+        }
+
+        if (!title) {
+            return { statusCode: 400, body: '<p style="color: red;">Erro: O título é obrigatório.</p>' };
         }
 
         // Buscar o conteúdo das transcrições no Supabase
@@ -74,6 +78,7 @@ exports.handler = async (event) => {
             .from('plans')
             .insert([{
                 user_id: user.id,
+                title: title, // Adicionado
                 plan_content: generatedHtml,
                 transcription_ids: transcriptionIds
             }])

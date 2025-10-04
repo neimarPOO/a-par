@@ -29,10 +29,14 @@ exports.handler = async (event) => {
             return { statusCode: 401, body: JSON.stringify({ error: 'Invalid token' }) };
         }
 
-        const { transcriptionIds, infoAula, participantes } = JSON.parse(event.body);
+        const { transcriptionIds, infoAula, participantes, title } = JSON.parse(event.body);
 
         if (!transcriptionIds || transcriptionIds.length === 0) {
             return { statusCode: 400, body: '<p style=\"color: red;\">Pelo menos uma transcrição deve ser selecionada.</p>' };
+        }
+
+        if (!title) {
+            return { statusCode: 400, body: '<p style=\"color: red;\">Erro: O título é obrigatório.</p>' };
         }
 
         // 2. Fetch transcriptions from Supabase
@@ -79,6 +83,7 @@ exports.handler = async (event) => {
             .insert([
                 {
                     user_id: user.id,
+                    title: title, // Adicionado
                     report_content: generatedHtml,
                     transcription_ids: transcriptionIds
                 }

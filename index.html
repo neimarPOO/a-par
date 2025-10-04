@@ -10,6 +10,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@200..700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         :root {
@@ -34,7 +36,8 @@
             --alert-danger-border: #f5c6cb;
             --text-muted-color: #6c757d;
             --transcription-item-hover-bg: #f8f9fa;
-            --bg-overlay: rgba(255, 255, 255, 0.7);
+            --bg-overlay: rgba(255, 255, 255, 0.4);
+            --navbar-bg: rgba(255, 255, 255, 0.9);
         }
 
         [data-theme="dark"] {
@@ -55,7 +58,8 @@
             --alert-danger-border: #6a3a3a;
             --text-muted-color: #bbb;
             --transcription-item-hover-bg: #3a3a4e;
-            --bg-overlay: rgba(0, 0, 0, 0.5);
+            --bg-overlay: rgba(0, 0, 0, 0.2);
+            --navbar-bg: rgba(42, 42, 62, 0.9);
         }
 
         body { 
@@ -70,7 +74,6 @@
         h1, h2, h3, h4, h5, h6 {
             font-family: var(--heading-font-family);
         }
-        .navbar-brand { font-weight: 700; font-size: 1.75rem; color: var(--primary) !important; } /* Marca em laranja */
         .nav-tabs { border-bottom: 1px solid var(--nav-tabs-border); margin-bottom: 1rem; } /* Borda inferior para as abas */
         .nav-tabs .nav-item { margin-bottom: -1px; } /* Ajuste para a borda */
         .nav-tabs .nav-link { color: var(--dark); font-weight: 500; border: 1px solid transparent; border-top-left-radius: 0.25rem; border-top-right-radius: 0.25rem; transition: all 0.3s ease; }
@@ -183,16 +186,6 @@
         }
 
         @media (max-width: 768px) {
-            header .d-flex.justify-content-center {
-                flex-direction: column;
-            }
-            header .position-absolute {
-                position: static !important;
-                margin-top: 1rem;
-            }
-            .navbar-brand {
-                font-size: 1.5rem;
-            }
             .nav-tabs .nav-link {
                 font-size: 0.9rem;
                 padding: 0.5rem 0.75rem;
@@ -209,17 +202,18 @@
         }
     </style>
 </head>
-<body class="">
+<body>
 
-    <header class="py-4">
-        <div class="container">
-            <div class="d-flex justify-content-center align-items-center position-relative">
-                <img src="logo_apar.png" alt="Logo A-par" class="navbar-brand" style="max-height: 360px;">
-                <div class="d-flex align-items-center position-absolute end-0">
+    <header class="py-3">
+        <div class="container-lg">
+            <div class="d-flex justify-content-between align-items-center" style="background-color: var(--navbar-bg); padding: 10px 20px; border-radius: 15px; backdrop-filter: blur(10px);">
+                <a class="navbar-brand" href="#">
+                    <img src="logo_apar.png" alt="Logo A-par" style="max-height: 70px;">
+                </a>
+                <div class="d-flex align-items-center">
                     <button id="theme-toggle-btn" class="theme-toggle me-3"><i class="bi bi-sun-fill"></i></button>
                     <div id="user-info" class="d-flex align-items-center">
                         <img id="user-avatar" src="" alt="Avatar" class="rounded-circle me-2" style="width: 32px; height: 32px; display: none;">
-                        <span id="user-email" class="fw-bold text-dark me-3 user-email-text" style="display: none;"></span>
                     </div>
                     <button id="logout-btn" class="icon-btn" title="Sair"><i class="bi bi-box-arrow-right"></i></button>
                 </div>
@@ -252,6 +246,25 @@
                     </div>
                 </div>
             </div>
+            <!-- Modal para exibir conteúdo salvo (planos/relatórios) -->
+            <div class="modal fade" id="saved-item-modal" tabindex="-1" aria-labelledby="saved-item-modal-label" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="saved-item-modal-label">Conteúdo Salvo</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="saved-item-modal-body">
+                            <!-- O conteúdo será inserido aqui -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" id="edit-saved-item-btn" class="btn btn-secondary">Editar</button>
+                            <button type="button" id="save-edited-item-btn" class="btn btn-primary d-none">Salvar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="tab-pane fade show active" id="content-planner" role="tabpanel">
                 <div class="card p-4 p-md-5 mt-3 text-center">
                     <h2 class="h4 mb-4 fw-bold">1. Forneça os Detalhes da Aula</h2>
@@ -268,6 +281,10 @@
                     <h2 class="h4 mb-4 fw-bold">2. Crie um Plano de Aula a Partir de Suas Anotações</h2>
                     <div id="planner-transcription-list-container" class="transcription-list p-0">
                         <div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Carregando anotações...</p></div>
+                    </div>
+                    <div class="form-floating my-3">
+                        <input type="text" id="plan-title" class="form-control" placeholder="Título do Plano de Aula" required>
+                        <label for="plan-title">Título do Plano de Aula</label>
                     </div>
                     <div class="mt-4 text-center">
                         <button id="generate-plan-btn" class="btn btn-primary"><i class="bi bi-magic me-2"></i>Criar Plano de Aula</button>
@@ -299,11 +316,11 @@
 
                 <div class="card p-4 p-md-5 mt-4">
                     <h2 class="h4 mb-4 fw-bold">2. Compilar Relatório a Partir de Transcrições</h2>
-                    <div id="transcription-list-container" class="transcription-list p-0">
+                    <div id="reporter-transcription-list-container" class="transcription-list p-0">
                         <div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Carregando transcrições...</p></div>
                     </div>
                     <div class="row g-3 mt-3">
-                        <div class="col-md-6"><div class="form-floating"><input type="text" id="info-aula" class="form-control" placeholder="Tópico"><label for="info-aula">Tópico Geral do Relatório</label></div></div>
+                        <div class="col-md-6"><div class="form-floating"><input type="text" id="report-title" class="form-control" placeholder="Título do Relatório"><label for="report-title">Título do Relatório</label></div></div>
                         <div class="col-md-6"><div class="form-floating"><input type="number" id="participantes" class="form-control" placeholder="Participantes"><label for="participantes">Nº de Participantes</label></div></div>
                     </div>
                     <div class="mt-4 text-center">
@@ -311,6 +328,12 @@
                     </div>
                 </div>
                 <div id="output-reporter"></div>
+                <div class="card p-4 p-md-5 mt-4">
+                    <h2 class="h4 mb-4 fw-bold">3. Relatórios Salvos</h2>
+                    <div id="saved-reports-container" class="p-0">
+                        <div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Carregando relatórios salvos...</p></div>
+                    </div>
+                </div>
             </div>
         </main>
 
@@ -398,8 +421,9 @@
                     console.log('User session found, updating UI and loading data.', session.user);
                     await updateUserUI(session.user);
                     loadTranscriptions(plannerTranscriptionListContainer, 'planner');
-                    loadTranscriptions(transcriptionListContainer, 'reporter');
+                    loadTranscriptions(reporterTranscriptionListContainer, 'reporter');
                     loadSavedPlans();
+                    loadSavedReports();
                 } else {
                     console.log('No user session, redirecting to login.');
                     window.location.href = 'login.html';
@@ -454,7 +478,7 @@
         }
 
         const plannerTranscriptionListContainer = document.getElementById('planner-transcription-list-container');
-        const transcriptionListContainer = document.getElementById('transcription-list-container');
+        const reporterTranscriptionListContainer = document.getElementById('reporter-transcription-list-container');
 
         // --- Lógica de Transcrições ---
         async function loadTranscriptions(container, type) {
@@ -511,36 +535,138 @@
             container.innerHTML = listHtml;
         }
         
-        // --- Lógica de Planos Salvos ---
-        async function loadSavedPlans() {
-            const savedPlansContainer = document.getElementById('saved-plans-container');
-            if (!savedPlansContainer) return;
-            savedPlansContainer.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Carregando planos...</p></div>';
+        // --- Lógica de Itens Salvos (Planos e Relatórios) ---
+        const savedItemModal = new bootstrap.Modal(document.getElementById('saved-item-modal'));
+        const savedItemModalLabel = document.getElementById('saved-item-modal-label');
+        const savedItemModalBody = document.getElementById('saved-item-modal-body');
+        let currentEditingInfo = {};
 
+        async function loadSavedPlans() {
+            const container = document.getElementById('saved-plans-container');
+            if (!container) return;
+            container.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div><p class="mt-2">Carregando planos...</p></div>';
             try {
                 const response = await authedFetch('/.netlify/functions/list-plans');
                 if (!response) return;
                 const plans = await response.json();
                 if (!response.ok) throw new Error(plans.error || 'Failed to load plans');
-
-                if (plans.length === 0) {
-                    savedPlansContainer.innerHTML = '<p class="text-center text-muted p-3">Nenhum plano de aula salvo ainda.</p>';
-                    return;
-                }
-
-                let listHtml = '<ul class="list-group list-group-flush">';
-                plans.forEach(p => {
-                    listHtml += `
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span class="fw-bold">${p.title}</span>
-                            <small class="text-muted">Criado em: ${new Date(p.created_at).toLocaleString()}</small>
-                        </li>`;
-                });
-                listHtml += '</ul>';
-                savedPlansContainer.innerHTML = listHtml;
+                displaySavedItems('saved-plans-container', plans, 'plan');
             } catch (error) {
                 console.error('Error in loadSavedPlans:', error);
-                savedPlansContainer.innerHTML = `<div class="alert alert-danger">Erro ao carregar planos: ${error.message}</div>`;
+                container.innerHTML = `<div class="alert alert-danger">Erro ao carregar planos: ${error.message}</div>`;
+            }
+        }
+
+        async function loadSavedReports() {
+            const container = document.getElementById('saved-reports-container');
+            if (!container) return;
+            container.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div><p class="mt-2">Carregando relatórios...</p></div>';
+            try {
+                const response = await authedFetch('/.netlify/functions/list-reports');
+                if (!response) return;
+                const reports = await response.json();
+                if (!response.ok) throw new Error(reports.error || 'Failed to load reports');
+                displaySavedItems('saved-reports-container', reports, 'report');
+            } catch (error) {
+                console.error('Error in loadSavedReports:', error);
+                container.innerHTML = `<div class="alert alert-danger">Erro ao carregar relatórios: ${error.message}</div>`;
+            }
+        }
+
+        function displaySavedItems(containerId, items, type) {
+            const container = document.getElementById(containerId);
+            const emptyMessage = `<p class="text-center text-muted p-3">Nenhum ${type === 'plan' ? 'plano' : 'relatório'} salvo ainda.</p>`;
+            if (items.length === 0) {
+                container.innerHTML = emptyMessage;
+                return;
+            }
+
+            let listHtml = '<ul class="list-group list-group-flush">';
+            items.forEach(item => {
+                listHtml += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold">${item.title}</span>
+                            <small class="d-block text-muted">Criado em: ${new Date(item.created_at).toLocaleString()}</small>
+                        </div>
+                        <div>
+                            <button class="icon-btn view-saved-item-btn me-2" data-id="${item.id}" data-type="${type}" title="Visualizar"><i class="bi bi-eye"></i></button>
+                            <button class="icon-btn download-item-btn" data-id="${item.id}" data-type="${type}" title="Download"><i class="bi bi-download"></i></button>
+                        </div>
+                    </li>`;
+            });
+            listHtml += '</ul>';
+            container.innerHTML = listHtml;
+        }
+
+        async function handleViewClick(id, type) {
+            document.getElementById('edit-saved-item-btn').classList.remove('d-none');
+            document.getElementById('save-edited-item-btn').classList.add('d-none');
+            savedItemModalBody.setAttribute('contenteditable', 'false');
+
+            currentEditingInfo = { id, type };
+            savedItemModalLabel.textContent = 'Carregando...';
+            savedItemModalBody.innerHTML = '<div class="text-center"><div class="spinner-border"></div></div>';
+            savedItemModal.show();
+
+            try {
+                const response = await authedFetch(`/.netlify/functions/get-${type}?id=${id}`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+
+                savedItemModalLabel.textContent = data.title;
+                const content = type === 'plan' ? data.plan_content : data.report_content;
+                savedItemModalBody.innerHTML = content;
+            } catch (error) {
+                savedItemModalBody.innerHTML = `<div class="alert alert-danger">Erro ao carregar conteúdo: ${error.message}</div>`;
+            }
+        }
+
+        async function handleDownloadClick(id, type) {
+            const { jsPDF } = window.jspdf;
+            try {
+                const response = await authedFetch(`/.netlify/functions/get-${type}?id=${id}`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+
+                const content = type === 'plan' ? data.plan_content : data.report_content;
+                const title = data.title || 'documento';
+
+                const element = document.createElement('div');
+                element.innerHTML = content;
+                document.body.appendChild(element);
+
+                const pdf = new jsPDF('p', 'pt', 'a4');
+                pdf.html(element, {
+                    callback: function (pdf) {
+                        pdf.save(`${title}.pdf`);
+                        document.body.removeChild(element);
+                    },
+                    x: 10,
+                    y: 10
+                });
+            } catch (error) {
+                alert(`Erro ao preparar download: ${error.message}`);
+            }
+        }
+
+        async function handleSaveEditedItem() {
+            const { id, type } = currentEditingInfo;
+            const content = savedItemModalBody.innerHTML;
+
+            try {
+                const response = await authedFetch(`/.netlify/functions/update-${type}` , {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, content })
+                });
+                if (!response.ok) {
+                    const result = await response.json();
+                    throw new Error(result.error);
+                }
+                savedItemModal.hide();
+            } catch (error) {
+                alert(`Erro ao salvar alterações: ${error.message}`);
             }
         }
 
@@ -598,8 +724,14 @@
 
             generatePlanBtn.addEventListener('click', async () => {
                 const selectedIds = Array.from(document.querySelectorAll('#planner-transcription-list-container input[type="checkbox"]:checked')).map(cb => cb.value);
+                const title = document.getElementById('plan-title').value;
+
                 if (selectedIds.length === 0) {
                     alert('Selecione pelo menos uma anotação para gerar o plano de aula.');
+                    return;
+                }
+                if (!title) {
+                    alert('Por favor, forneça um título para o plano de aula.');
                     return;
                 }
 
@@ -607,7 +739,7 @@
                     const response = await authedFetch('/.netlify/functions/generate-plan', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ transcriptionIds: selectedIds })
+                        body: JSON.stringify({ transcriptionIds: selectedIds, title })
                     });
 
                     if (!response.ok) {
@@ -616,19 +748,24 @@
                     }
 
                     const plan = await response.text();
-                    document.getElementById('output-planner').innerHTML = `<div class="output-section"><h3>Plano de Aula Gerado</h3>${plan}</div>`;
+                    document.getElementById('output-planner').innerHTML = `<div class="output-section"><div contenteditable="true">${plan}</div><button class="btn btn-primary mt-3">Salvar Alterações</button></div>`;
+                    loadSavedPlans(); // Recarrega a lista
                 } catch (error) {
                     alert(`Erro ao gerar plano de aula: ${error.message}`);
                 }
             });
 
             generateReportBtn.addEventListener('click', async () => {
-                const selectedIds = Array.from(document.querySelectorAll('#transcription-list-container input[type="checkbox"]:checked')).map(cb => cb.value);
-                const infoAula = document.getElementById('info-aula').value;
+                const selectedIds = Array.from(document.querySelectorAll('#reporter-transcription-list-container input[type="checkbox"]:checked')).map(cb => cb.value);
+                const title = document.getElementById('report-title').value;
                 const participantes = document.getElementById('participantes').value;
 
                 if (selectedIds.length === 0) {
                     alert('Selecione pelo menos uma anotação para gerar o relatório.');
+                    return;
+                }
+                if (!title) {
+                    alert('Por favor, forneça um título para o relatório.');
                     return;
                 }
 
@@ -636,7 +773,7 @@
                     const response = await authedFetch('/.netlify/functions/generate-report', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ transcriptionIds: selectedIds, infoAula, participantes })
+                        body: JSON.stringify({ transcriptionIds: selectedIds, title, participantes })
                     });
 
                     if (!response.ok) {
@@ -645,7 +782,8 @@
                     }
 
                     const report = await response.text();
-                    document.getElementById('output-reporter').innerHTML = `<div class="output-section"><h3>Relatório Gerado</h3>${report}</div>`;
+                    document.getElementById('output-reporter').innerHTML = `<div class="output-section"><div contenteditable="true">${report}</div><button class="btn btn-primary mt-3">Salvar Alterações</button></div>`;
+                    loadSavedReports(); // Recarrega a lista
                 } catch (error) {
                     alert(`Erro ao gerar relatório: ${error.message}`);
                 }
@@ -653,8 +791,7 @@
 
             // --- Lógica do Botão de Logout ---
             document.getElementById('logout-btn').addEventListener('click', () => {
-                sessionStorage.removeItem('transcriptions_planner');
-                sessionStorage.removeItem('transcriptions_reporter');
+                sessionStorage.clear();
                 logout();
             });
 
@@ -694,7 +831,7 @@
                     if (type === 'planner') {
                         loadTranscriptions(plannerTranscriptionListContainer, 'planner');
                     } else {
-                        loadTranscriptions(transcriptionListContainer, 'reporter');
+                        loadTranscriptions(reporterTranscriptionListContainer, 'reporter');
                     }
 
                     recordedAudioFile = null;
@@ -732,7 +869,7 @@
                     if (type === 'planner') {
                         loadTranscriptions(plannerTranscriptionListContainer, 'planner');
                     } else {
-                        loadTranscriptions(transcriptionListContainer, 'reporter');
+                        loadTranscriptions(reporterTranscriptionListContainer, 'reporter');
                     }
 
                     bootstrap.Modal.getInstance(document.getElementById('textModal')).hide();
@@ -743,20 +880,22 @@
 
             // --- Lógica de Visualização e Exclusão ---
             const transcriptionContentModal = new bootstrap.Modal(document.getElementById('transcription-content-modal'));
-            const modalTitle = document.getElementById('transcription-content-modal-label');
-            const modalBody = document.getElementById('transcription-content-modal-body');
-            const containers = [plannerTranscriptionListContainer, transcriptionListContainer];
+            const transcriptionModalTitle = document.getElementById('transcription-content-modal-label');
+            const transcriptionModalBody = document.getElementById('transcription-content-modal-body');
+            const containers = [plannerTranscriptionListContainer, reporterTranscriptionListContainer, document.getElementById('saved-plans-container'), document.getElementById('saved-reports-container')];
 
             containers.forEach(container => {
                 if (!container) return;
                 container.addEventListener('click', async (e) => {
                     const viewBtn = e.target.closest('.view-btn');
                     const deleteBtn = e.target.closest('.delete-btn');
+                    const viewSavedBtn = e.target.closest('.view-saved-item-btn');
+                    const downloadBtn = e.target.closest('.download-item-btn');
 
                     if (viewBtn) {
                         const id = viewBtn.dataset.id;
-                        modalTitle.textContent = 'Carregando Anotação...';
-                        modalBody.innerHTML = '<div class="text-center"><div class="spinner-border"></div></div>';
+                        transcriptionModalTitle.textContent = 'Carregando Anotação...';
+                        transcriptionModalBody.innerHTML = '<div class="text-center"><div class="spinner-border"></div></div>';
                         transcriptionContentModal.show();
 
                         try {
@@ -764,7 +903,7 @@
                             const data = await response.json();
                             if (!response.ok) throw new Error(data.error);
 
-                            modalTitle.textContent = data.title;
+                            transcriptionModalTitle.textContent = data.title;
                             let contentHtml = '';
                             if (data.audio_url) {
                                 contentHtml = `<audio controls src="${data.audio_url}" class="w-100">Seu navegador não suporta o elemento de áudio.</audio>`;
@@ -773,9 +912,9 @@
                             } else {
                                 contentHtml = '<p class="text-muted">Nenhum conteúdo para exibir.</p>';
                             }
-                            modalBody.innerHTML = contentHtml;
+                            transcriptionModalBody.innerHTML = contentHtml;
                         } catch (error) {
-                            modalBody.innerHTML = `<div class="alert alert-danger">Erro ao carregar conteúdo: ${error.message}</div>`;
+                            transcriptionModalBody.innerHTML = `<div class="alert alert-danger">Erro ao carregar conteúdo: ${error.message}</div>`;
                         }
                     }
 
@@ -800,8 +939,30 @@
                             alert(`Erro ao excluir: ${error.message}`);
                         }
                     }
+
+                    if (viewSavedBtn) {
+                        const id = viewSavedBtn.dataset.id;
+                        const type = viewSavedBtn.dataset.type;
+                        handleViewClick(id, type);
+                    }
+
+                    if (downloadBtn) {
+                        const id = downloadBtn.dataset.id;
+                        const type = downloadBtn.dataset.type;
+                        handleDownloadClick(id, type);
+                    }
                 });
             });
+
+            document.getElementById('edit-saved-item-btn').addEventListener('click', () => {
+                savedItemModalBody.setAttribute('contenteditable', 'true');
+                savedItemModalBody.focus();
+                document.getElementById('edit-saved-item-btn').classList.add('d-none');
+                document.getElementById('save-edited-item-btn').classList.remove('d-none');
+            });
+
+            document.getElementById('save-edited-item-btn').addEventListener('click', handleSaveEditedItem);
+
         });
     </script>
     <script>
