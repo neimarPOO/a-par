@@ -16,8 +16,8 @@ exports.handler = async (event) => {
             return { statusCode: 401, body: JSON.stringify({ error: 'Invalid token' }) };
         }
 
-        const { data: plans, error: fetchError } = await supabaseAdmin
-            .from('plans')
+        const { data: reports, error: fetchError } = await supabaseAdmin
+            .from('reports')
             .select('id, title, created_at')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false });
@@ -26,14 +26,14 @@ exports.handler = async (event) => {
 
         return {
             statusCode: 200,
-            body: JSON.stringify(plans),
+            body: JSON.stringify(reports),
         };
 
     } catch (error) {
-        console.error("Error fetching plans:", error.message);
+        console.error("Error fetching reports:", error.message);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Failed to fetch plans.' }),
+            body: JSON.stringify({ error: 'Failed to fetch reports.' }),
         };
     }
 };
