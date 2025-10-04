@@ -13,18 +13,29 @@ Responda diretamente com o HTML para ser inserido em uma div. Use tags como <p> 
 `;
 
 exports.handler = async (event) => {
+    const token = event.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+        return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
+    }
+
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Method Not Allowed' };
     }
 
     try {
+        // 1. Validar o token e obter o usuário
+        const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+        if (userError || !user) {
+            return { statusCode: 401, body: JSON.stringify({ error: 'Invalid token' }) };
+        }
+
         const { transcriptionIds, infoAula, participantes } = JSON.parse(event.body);
 
         if (!transcriptionIds || transcriptionIds.length === 0) {
-            return { statusCode: 400, body: '<p style="color: red;">Pelo menos uma transcrição deve ser selecionada.</p>' };
+            return { statusCode: 400, body: '<p style=\"color: red;\">Pelo menos uma transcrição deve ser selecionada.</p>' };
         }
 
-        // 1. Fetch transcriptions from Supabase
+        // 2. Fetch transcriptions from Supabase
         const { data: transcriptions, error } = await supabaseAdmin
             .from('transcriptions')
             .select('title, transcription_text')
@@ -32,11 +43,10 @@ exports.handler = async (event) => {
 
         if (error) throw error;
 
-        // 2. Combine texts
+        // 3. Combine texts
         const combinedText = transcriptions
-            .map(t => `-- Transcrição: ${t.title} ---
-${t.transcription_text}`)
-            .join('\n\n');
+            .map(t => `-- Transcrição: ${t.title} ---\\n${t.transcription_text}`)
+            .join('\\n\\n');
         
         const finalPrompt = `
             Informações Gerais: Tópico: ${infoAula}, Nº de Participantes: ${participantes}.
@@ -44,7 +54,7 @@ ${t.transcription_text}`)
             ${combinedText}
         `;
 
-        // 3. Generate report with OpenRouter
+        // 4. Generate report with OpenRouter
         const openRouterResponse = await axios.post(openRouterUrl, {
             model: "openai/gpt-oss-20b:free",
             messages: [
@@ -62,17 +72,62 @@ ${t.transcription_text}`)
         });
 
         const generatedHtml = openRouterResponse.data.choices[0].message.content;
+
+        // 5. Salvar o relatório gerado no Supabase
+        const { error: saveError } = await supabaseAdmin
+            .from('reports')
+            .insert([
+                {
+                    user_id: user.id,
+                    report_content: generatedHtml,
+                    transcription_ids: transcriptionIds
+                }
+            ]);
+
+        if (saveError) {
+            console.error("Error saving report to Supabase:", saveError.message);
+            // Não retorna erro ao usuário, apenas loga no servidor
+        }
+        
+        // 6. Adicionar botão de cópia e script
+        const uniqueId = `report-${Date.now()}`;
+        const finalHtml = `
+            <div id="content-to-copy-${uniqueId}">
+                ${generatedHtml}
+            </div>
+            <button onclick="copyContent('copy-btn-${uniqueId}', 'content-to-copy-${uniqueId}')" id="copy-btn-${uniqueId}" style="margin-top: 15px; padding: 8px 12px; border-radius: 5px; border: 1px solid #ccc; cursor: pointer;">Copiar Texto</button>
+            <script>
+                if (typeof copyContent !== 'function') {
+                    window.copyContent = function(buttonId, contentId) {
+                        const contentElement = document.getElementById(contentId);
+                        const button = document.getElementById(buttonId);
+                        if (contentElement && button) {
+                            navigator.clipboard.writeText(contentElement.innerText).then(() => {
+                                button.textContent = 'Copiado!';
+                                setTimeout(() => {
+                                    button.textContent = 'Copiar Texto';
+                                }, 2000);
+                            }).catch(err => {
+                                console.error('Erro ao copiar texto: ', err);
+                                button.textContent = 'Erro ao copiar';
+                            });
+                        }
+                    }
+                }
+            <\/script>
+        `;
+
         return {
             statusCode: 200,
             headers: { 'Content-Type': 'text/html' },
-            body: generatedHtml
+            body: finalHtml
         };
 
     } catch (error) {
         console.error("Error generating report:", error.response ? error.response.data : error.message);
         return {
             statusCode: 500,
-            body: '<p style="color: red;">Ocorreu um erro ao gerar o relatório.</p>'
+            body: '<p style=\"color: red;\">Ocorreu um erro ao gerar o relatório.</p>'
         };
     }
 };

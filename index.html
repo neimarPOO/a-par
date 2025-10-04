@@ -34,6 +34,7 @@
             --alert-danger-border: #f5c6cb;
             --text-muted-color: #6c757d;
             --transcription-item-hover-bg: #f8f9fa;
+            --bg-overlay: rgba(255, 255, 255, 0.7);
         }
 
         [data-theme="dark"] {
@@ -54,10 +55,15 @@
             --alert-danger-border: #6a3a3a;
             --text-muted-color: #bbb;
             --transcription-item-hover-bg: #3a3a4e;
+            --bg-overlay: rgba(0, 0, 0, 0.5);
         }
 
         body { 
             font-family: var(--body-font-family);
+            background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('fundo.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             background-color: var(--body-bg) !important;
             color: var(--secondary-color);
         }
@@ -78,6 +84,26 @@
         .btn-primary:hover { background-color: #e06a10; border-color: #e06a10; }
         .btn-outline-secondary { color: var(--primary); border-color: var(--primary); }
         .btn-outline-secondary:hover { background-color: var(--primary); color: #fff; }
+        
+        .action-btn {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            border-width: 2px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .action-btn i {
+            font-size: 3rem;
+        }
+
         .output-section, .transcription-list {
             background-color: var(--card-bg);
             border-radius: 1rem;
@@ -188,14 +214,14 @@
     <header class="py-4">
         <div class="container">
             <div class="d-flex justify-content-center align-items-center position-relative">
-                <img src="logo_apar.png" alt="Logo A-par" class="navbar-brand" style="max-height: 180px;">
+                <img src="logo_apar.png" alt="Logo A-par" class="navbar-brand" style="max-height: 360px;">
                 <div class="d-flex align-items-center position-absolute end-0">
                     <button id="theme-toggle-btn" class="theme-toggle me-3"><i class="bi bi-sun-fill"></i></button>
                     <div id="user-info" class="d-flex align-items-center">
                         <img id="user-avatar" src="" alt="Avatar" class="rounded-circle me-2" style="width: 32px; height: 32px; display: none;">
                         <span id="user-email" class="fw-bold text-dark me-3 user-email-text" style="display: none;"></span>
                     </div>
-                    <button id="logout-btn" class="btn btn-sm btn-outline-secondary">Sair</button>
+                    <button id="logout-btn" class="icon-btn" title="Sair"><i class="bi bi-box-arrow-right"></i></button>
                 </div>
             </div>
         </div>
@@ -229,14 +255,12 @@
             <div class="tab-pane fade show active" id="content-planner" role="tabpanel">
                 <div class="card p-4 p-md-5 mt-3 text-center">
                     <h2 class="h4 mb-4 fw-bold">1. Forneça os Detalhes da Aula</h2>
-                    <div class="d-flex justify-content-center gap-3 mt-3">
-                        <button type="button" class="btn btn-primary btn-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#recordModal" style="width: 100px; height: 100px; display: flex; flex-direction: column; align-items-center; justify-content: center;">
-                            <i class="bi bi-mic-fill" style="font-size: 2rem;"></i>
-                            <span style="font-size: 0.8rem;">Gravar</span>
+                    <div class="d-flex justify-content-center gap-4 mt-3">
+                        <button type="button" class="btn btn-primary action-btn" data-bs-toggle="modal" data-bs-target="#recordModal" title="Gravar Áudio">
+                            <i class="bi bi-mic"></i>
                         </button>
-                        <button type="button" class="btn btn-secondary btn-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#textModal" style="width: 100px; height: 100px; display: flex; flex-direction: column; align-items-center; justify-content: center;">
-                            <i class="bi bi-file-earmark-text-fill" style="font-size: 2rem;"></i>
-                            <span style="font-size: 0.8rem;">Texto</span>
+                        <button type="button" class="btn btn-outline-primary action-btn" data-bs-toggle="modal" data-bs-target="#textModal" title="Digitar Texto">
+                            <i class="bi bi-fonts"></i>
                         </button>
                     </div>
                 </div>
@@ -263,14 +287,12 @@
             <div class="tab-pane fade" id="content-reporter" role="tabpanel">
                 <div class="card p-4 p-md-5 mt-3 text-center">
                     <h2 class="h4 mb-4 fw-bold">1. Crie ou adicione um registro de aula</h2>
-                    <div class="d-flex justify-content-center gap-3 mt-3">
-                        <button type="button" class="btn btn-primary btn-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#recordModal" style="width: 100px; height: 100px; display: flex; flex-direction: column; align-items-center; justify-content: center;">
-                            <i class="bi bi-mic-fill" style="font-size: 2rem;"></i>
-                            <span style="font-size: 0.8rem;">Gravar</span>
+                    <div class="d-flex justify-content-center gap-4 mt-3">
+                        <button type="button" class="btn btn-primary action-btn" data-bs-toggle="modal" data-bs-target="#recordModal" title="Gravar Áudio">
+                            <i class="bi bi-mic"></i>
                         </button>
-                        <button type="button" class="btn btn-secondary btn-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#textModal" style="width: 100px; height: 100px; display: flex; flex-direction: column; align-items-center; justify-content: center;">
-                            <i class="bi bi-file-earmark-text-fill" style="font-size: 2rem;"></i>
-                            <span style="font-size: 0.8rem;">Texto</span>
+                        <button type="button" class="btn btn-outline-primary action-btn" data-bs-toggle="modal" data-bs-target="#textModal" title="Digitar Texto">
+                            <i class="bi bi-fonts"></i>
                         </button>
                     </div>
                 </div>

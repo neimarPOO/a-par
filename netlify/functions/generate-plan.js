@@ -84,10 +84,37 @@ exports.handler = async (event) => {
             // Decide se quer retornar um erro ou apenas logar
         }
 
+        const uniqueId = `plan-${Date.now()}`;
+        const finalHtml = `
+            <div id="content-to-copy-${uniqueId}">
+                ${generatedHtml}
+            </div>
+            <button onclick="copyContent('copy-btn-${uniqueId}', 'content-to-copy-${uniqueId}')" id="copy-btn-${uniqueId}" style="margin-top: 15px; padding: 8px 12px; border-radius: 5px; border: 1px solid #ccc; cursor: pointer;">Copiar Texto</button>
+            <script>
+                if (typeof copyContent !== 'function') {
+                    window.copyContent = function(buttonId, contentId) {
+                        const contentElement = document.getElementById(contentId);
+                        const button = document.getElementById(buttonId);
+                        if (contentElement && button) {
+                            navigator.clipboard.writeText(contentElement.innerText).then(() => {
+                                button.textContent = 'Copiado!';
+                                setTimeout(() => {
+                                    button.textContent = 'Copiar Texto';
+                                }, 2000);
+                            }).catch(err => {
+                                console.error('Erro ao copiar texto: ', err);
+                                button.textContent = 'Erro ao copiar';
+                            });
+                        }
+                    }
+                }
+            <\/script>
+        `;
+
         return {
             statusCode: 200,
             headers: { 'Content-Type': 'text/html' },
-            body: generatedHtml
+            body: finalHtml
         };
 
     } catch (error) {
