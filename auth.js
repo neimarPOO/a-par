@@ -105,10 +105,3 @@ async function checkSession() {
     }
 }
 
-// --- Redirecionamento (para index.html) ---
-async function handleRedirect() {
-    const session = await checkSession();
-    if (!session) {
-        window.location.href = 'login.html';
-    }
-}
