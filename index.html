@@ -76,9 +76,38 @@
         }
         .nav-tabs { border-bottom: 1px solid var(--nav-tabs-border); margin-bottom: 1rem; } /* Borda inferior para as abas */
         .nav-tabs .nav-item { margin-bottom: -1px; } /* Ajuste para a borda */
-        .nav-tabs .nav-link { color: var(--dark); font-weight: 500; border: 1px solid transparent; border-top-left-radius: 0.25rem; border-top-right-radius: 0.25rem; transition: all 0.3s ease; }
-        .nav-tabs .nav-link:hover:not(.active) { color: var(--primary); border-color: var(--nav-tabs-border) var(--nav-tabs-border) var(--body-bg); background-color: var(--nav-tabs-link-hover-bg); }
-        .nav-tabs .nav-link.active { color: var(--primary); background-color: var(--body-bg); border-color: var(--nav-tabs-border) var(--nav-tabs-border) var(--body-bg); font-weight: 600; } /* Aba ativa em laranja */
+        .nav-tabs .nav-link { 
+            color: #fff; 
+            background-color: #6c757d;
+            font-weight: 500; 
+            border: 1px solid transparent; 
+            border-top-left-radius: 0.25rem; 
+            border-top-right-radius: 0.25rem; 
+            transition: all 0.3s ease; 
+        }
+        .nav-tabs .nav-link:hover:not(.active) { 
+            color: var(--primary); 
+            border-color: var(--nav-tabs-border) var(--nav-tabs-border) var(--body-bg); 
+            background-color: var(--nav-tabs-link-hover-bg); 
+        }
+        .nav-tabs .nav-link.active { 
+            color: var(--primary); 
+            background-color: #fff; 
+            border-color: var(--nav-tabs-border) var(--nav-tabs-border) var(--body-bg); 
+            font-weight: 600; 
+        }
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--secondary-color);
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+
+        [data-theme="dark"] .icon-btn {
+            color: #f0f0f0;
+        }
+
         .card { border: none; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); background-color: var(--card-bg); color: var(--dark); border-radius: 1rem; transition: all 0.3s ease; } /* Cards com fundo branco e arredondados */
         .card:hover { transform: translateY(-5px); box-shadow: 0 1rem 2rem rgba(0,0,0,0.15); }
         .btn { font-weight: 600; padding: 0.5rem 1rem; transition: all 0.3s ease; border-radius: 0.5rem; }
@@ -586,7 +615,12 @@
                         </div>
                         <div>
                             <button class="icon-btn view-saved-item-btn me-2" data-id="${item.id}" data-type="${type}" title="Visualizar"><i class="bi bi-eye"></i></button>
-                            <button class="icon-btn download-item-btn" data-id="${item.id}" data-type="${type}" title="Download"><i class="bi bi-download"></i></button>
+                            <div class="btn-group">
+                                <button class="icon-btn download-item-btn" data-id="${item.id}" data-type="${type}" data-format="pdf" title="Download PDF"><i class="bi bi-file-earmark-pdf"></i></button>
+                                <button class="icon-btn download-item-btn" data-id="${item.id}" data-type="${type}" data-format="html" title="Download HTML"><i class="bi bi-file-earmark-code"></i></button>
+                            </div>
+                            <button class="icon-btn share-item-btn" data-id="${item.id}" data-type="${type}" data-channel="gmail" title="Compartilhar via Gmail"><i class="bi bi-envelope"></i></button>
+                            <button class="icon-btn share-item-btn" data-id="${item.id}" data-type="${type}" data-channel="whatsapp" title="Compartilhar via WhatsApp"><i class="bi bi-whatsapp"></i></button>
                         </div>
                     </li>`;
             });
@@ -617,8 +651,7 @@
             }
         }
 
-        async function handleDownloadClick(id, type) {
-            const { jsPDF } = window.jspdf;
+        async function handleDownloadClick(id, type, format) {
             try {
                 const response = await authedFetch(`/.netlify/functions/get-${type}?id=${id}`);
                 const data = await response.json();
@@ -627,21 +660,56 @@
                 const content = type === 'plan' ? data.plan_content : data.report_content;
                 const title = data.title || 'documento';
 
-                const element = document.createElement('div');
-                element.innerHTML = content;
-                document.body.appendChild(element);
+                if (format === 'pdf') {
+                    const { jsPDF } = window.jspdf;
+                    const element = document.createElement('div');
+                    element.innerHTML = content;
+                    document.body.appendChild(element);
 
-                const pdf = new jsPDF('p', 'pt', 'a4');
-                pdf.html(element, {
-                    callback: function (pdf) {
-                        pdf.save(`${title}.pdf`);
-                        document.body.removeChild(element);
-                    },
-                    x: 10,
-                    y: 10
-                });
+                    const pdf = new jsPDF('p', 'pt', 'a4');
+                    pdf.html(element, {
+                        callback: function (pdf) {
+                            pdf.save(`${title}.pdf`);
+                            document.body.removeChild(element);
+                        },
+                        x: 10,
+                        y: 10
+                    });
+                } else if (format === 'html') {
+                    const blob = new Blob([content], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${title}.html`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }
             } catch (error) {
                 alert(`Erro ao preparar download: ${error.message}`);
+            }
+        }
+
+        async function handleShareClick(id, type, channel) {
+            try {
+                const response = await authedFetch(`/.netlify/functions/get-${type}?id=${id}`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+
+                const content = type === 'plan' ? data.plan_content : data.report_content;
+                const title = data.title || 'documento';
+
+                if (channel === 'gmail') {
+                    const subject = encodeURIComponent(title);
+                    const body = encodeURIComponent(content);
+                    window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`);
+                } else if (channel === 'whatsapp') {
+                    const text = encodeURIComponent(`${title}\n\n${content}`);
+                    window.open(`https://api.whatsapp.com/send?text=${text}`);
+                }
+            } catch (error) {
+                alert(`Erro ao preparar compartilhamento: ${error.message}`);
             }
         }
 
@@ -889,6 +957,7 @@
                     const deleteBtn = e.target.closest('.delete-btn');
                     const viewSavedBtn = e.target.closest('.view-saved-item-btn');
                     const downloadBtn = e.target.closest('.download-item-btn');
+                    const shareBtn = e.target.closest('.share-item-btn');
 
                     if (viewBtn) {
                         const id = viewBtn.dataset.id;
@@ -947,7 +1016,15 @@
                     if (downloadBtn) {
                         const id = downloadBtn.dataset.id;
                         const type = downloadBtn.dataset.type;
-                        handleDownloadClick(id, type);
+                        const format = downloadBtn.dataset.format;
+                        handleDownloadClick(id, type, format);
+                    }
+
+                    if (shareBtn) {
+                        const id = shareBtn.dataset.id;
+                        const type = shareBtn.dataset.type;
+                        const channel = shareBtn.dataset.channel;
+                        handleShareClick(id, type, channel);
                     }
                 });
             });

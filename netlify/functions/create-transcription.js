@@ -2,8 +2,14 @@ const axios = require('axios');
 const Busboy = require('busboy');
 const { supabaseAdmin, createSupabaseClient } = require('../supabaseClient');
 
-const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY;
-const assemblyApiUrl = "https://api.assemblyai.com/v2";
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions";
+
+const titleGenerationPrompt = `
+Você é um assistente de IA especializado em resumir e titular textos. Sua função é criar um título conciso e relevante para o texto fornecido.
+O título deve ter no máximo 5 palavras e capturar a essência do texto.
+Responda apenas com o título gerado, sem nenhuma outra formatação ou texto adicional.
+`;
 
 // ... (a função parseMultipartForm não muda)
 function parseMultipartForm(event) {
@@ -54,9 +60,9 @@ exports.handler = async (event) => {
             type = fields.type;
             console.log(`Received fields: title=${title}, type=${type}, filename=${filename}`);
 
-            if (!title || !fileBuffer) {
-                console.error('Missing title or audio file.');
-                return { statusCode: 400, body: JSON.stringify({ error: 'Title and audio file are required' }) };
+            if (!fileBuffer) {
+                console.error('Missing audio file.');
+                return { statusCode: 400, body: JSON.stringify({ error: 'Audio file is required' }) };
             }
 
             console.log(`Uploading audio file to Supabase Storage... File size: ${fileBuffer.length} bytes`);
@@ -119,6 +125,27 @@ exports.handler = async (event) => {
             }
             transcriptionText = pollingTranscriptionText;
 
+            if (!title) {
+                console.log('Title is missing, generating title with OpenRouter...');
+                const response = await axios.post(openRouterUrl, {
+                    model: "openai/gpt-oss-20b:free",
+                    messages: [
+                        { role: "system", content: titleGenerationPrompt },
+                        { role: "user", content: transcriptionText }
+                    ],
+                    max_tokens: 20
+                }, {
+                    headers: {
+                        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': 'https://a-par.netlify.app', // Replace with your actual site URL
+                        'X-Title': 'A-par' // Replace with your actual site name
+                    }
+                });
+                title = response.data.choices[0].message.content.trim();
+                console.log(`Generated title: ${title}`);
+            }
+
         } else if (event.headers['content-type'] && event.headers['content-type'].includes('application/json')) {
             console.log('Processing application/json for text upload...');
             const body = JSON.parse(event.body);
@@ -128,9 +155,30 @@ exports.handler = async (event) => {
             audio_url = null;
             console.log(`Received data: title=${title}, type=${type}`);
 
-            if (!title || !transcriptionText) {
-                console.error('Missing title or text content.');
-                return { statusCode: 400, body: JSON.stringify({ error: 'Title and text content are required' }) };
+            if (!transcriptionText) {
+                console.error('Missing text content.');
+                return { statusCode: 400, body: JSON.stringify({ error: 'Text content is required' }) };
+            }
+
+            if (!title) {
+                console.log('Title is missing, generating title with OpenRouter...');
+                const response = await axios.post(openRouterUrl, {
+                    model: "openai/gpt-oss-20b:free",
+                    messages: [
+                        { role: "system", content: titleGenerationPrompt },
+                        { role: "user", content: transcriptionText }
+                    ],
+                    max_tokens: 20
+                }, {
+                    headers: {
+                        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': 'https://a-par.netlify.app', // Replace with your actual site URL
+                        'X-Title': 'A-par' // Replace with your actual site name
+                    }
+                });
+                title = response.data.choices[0].message.content.trim();
+                console.log(`Generated title: ${title}`);
             }
         } else {
             console.error(`Unsupported Content-Type: ${event.headers['content-type']}`);

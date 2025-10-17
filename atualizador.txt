@@ -1,1 +1,9 @@
-algumas alterações pontuais: Apenas a foto do usuário logado deve ficar visível no app; na aba "Relatório de aulas" substitua a div "Adicionar Nova Transcrição de Aula" por dois botões redondos com ícones, "Gravação" e "Adicionar texto" que devem abrir modais com suas funções respectivas. O botão "Adicionar à lista" deve permanecer e apenas ser aperfeiçoado para manter a coerência no layout. 
+- Aplique uma cor clara na mensagem da tela de login "Bem-vindo de volta!";
+- Em "2. Crie um Plano de Aula a Partir de Suas Anotações", "2. Compilar Relatório a Partir de Transcrições", "3. Relatórios Salvos", deixe os ícones dos 
+documentos salvos visíveis no modo escuro(eles estão ocultos no fundo branco);
+- Torne possível baixar os relatórios e planos de aula salvos dando a opção de baixar em PDF ou um formato editável ou compartilhar via Gmail, wathsapp;
+-  torne as abas "nav-link" que dão acesso ao conteúdo das abas, visíveis de forma que quando uma está sendo acessada fique com uma cor de fundo branca com fontes laranjas e a outra 
+que não está sendo acessada fique cinza com fontes brancas;
+- Aplique um efeito de transição quando o usuário trocar de abas;
+- Em  "1. Forneça os Detalhes da Aula" e "1. Crie ou adicione um registro de aula" no modo de gravação de voz, se o usuário não fornecer o título da gravação, ela deve ser salva
+com um título fornecido pela IA que tenha relação com o conteúdo gravado;
