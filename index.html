@@ -319,6 +319,9 @@
                         <button id="generate-plan-btn" class="btn btn-primary"><i class="bi bi-magic me-2"></i>Criar Plano de Aula</button>
                         <button class="btn btn-secondary mt-2" data-bs-toggle="modal" data-bs-target="#prompt-modal" data-type="plan">Aprimorar Prompt</button>
                     </div>
+                    <div id="plan-progress" class="progress mt-3 d-none">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                    </div>
                 </div>
 
                 <div id="output-planner"></div>
@@ -356,6 +359,9 @@
                     <div class="mt-4 text-center">
                         <button id="generate-report-btn" class="btn btn-primary"><i class="bi bi-file-earmark-text me-2"></i>Compilar Relatório</button>
                         <button class="btn btn-secondary mt-2" data-bs-toggle="modal" data-bs-target="#prompt-modal" data-type="report">Aprimorar Prompt</button>
+                    </div>
+                    <div id="report-progress" class="progress mt-3 d-none">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
                     </div>
                 </div>
                 <div id="output-reporter"></div>
@@ -470,6 +476,7 @@
                     // Se a sessão existe, continua o carregamento
                     console.log('Active session found, updating UI and loading data.', session.user);
                     updateUserUI(session.user);
+                    loadUserPrompts();
                     loadTranscriptions(plannerTranscriptionListContainer, 'planner');
                     loadTranscriptions(reporterTranscriptionListContainer, 'reporter');
                     loadSavedPlans();
@@ -769,6 +776,7 @@
         }
 
         async function handleSaveEditedItem() {
+            debugger;
             console.log('handleSaveEditedItem called');
             const { id, type } = currentEditingInfo;
             const content = savedItemModalBody.innerHTML;
@@ -823,6 +831,24 @@ Quando o usuário fornecer o conteúdo de suas anotações (transcrições de á
 4. **Recomendações** (sugestões para aulas futuras)
 Responda diretamente com o HTML para ser inserido em uma div. Use tags como <h3>, <ul>, <li>, <p>, <strong>.
 `;
+
+        let userPlanPrompt = lessonPlanPrompt;
+        let userReportPrompt = reportPrompt;
+
+        async function loadUserPrompts() {
+            try {
+                const response = await authedFetch('/.netlify/functions/get-user-prompts');
+                if (response.ok) {
+                    const prompts = await response.json();
+                    if (prompts) {
+                        userPlanPrompt = prompts.plan_prompt || lessonPlanPrompt;
+                        userReportPrompt = prompts.report_prompt || reportPrompt;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user prompts:', error);
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             // A lógica de verificação de sessão agora é tratada pelo onAuthStateChange
@@ -883,7 +909,10 @@ Responda diretamente com o HTML para ser inserido em uma div. Use tags como <h3>
                     return;
                 }
 
-                const prompt = sessionStorage.getItem('planPrompt') || lessonPlanPrompt;
+                const prompt = userPlanPrompt;
+
+                const planProgress = document.getElementById('plan-progress');
+                planProgress.classList.remove('d-none');
 
                 try {
                     const response = await authedFetch('/.netlify/functions/generate-plan', {
@@ -902,6 +931,8 @@ Responda diretamente com o HTML para ser inserido em uma div. Use tags como <h3>
                     loadSavedPlans(); // Recarrega a lista
                 } catch (error) {
                     alert(`Erro ao gerar plano de aula: ${error.message}`);
+                } finally {
+                    planProgress.classList.add('d-none');
                 }
             });
 
@@ -919,7 +950,10 @@ Responda diretamente com o HTML para ser inserido em uma div. Use tags como <h3>
                     return;
                 }
 
-                const prompt = sessionStorage.getItem('reportPrompt') || reportPrompt;
+                const prompt = userReportPrompt;
+
+                const reportProgress = document.getElementById('report-progress');
+                reportProgress.classList.remove('d-none');
 
                 try {
                     const response = await authedFetch('/.netlify/functions/generate-report', {
@@ -938,6 +972,8 @@ Responda diretamente com o HTML para ser inserido em uma div. Use tags como <h3>
                     loadSavedReports(); // Recarrega a lista
                 } catch (error) {
                     alert(`Erro ao gerar relatório: ${error.message}`);
+                } finally {
+                    reportProgress.classList.add('d-none');
                 }
             });
 
@@ -1136,9 +1172,24 @@ Responda diretamente com o HTML para ser inserido em uma div. Use tags como <h3>
                 });
             });
 
-            document.getElementById('save-prompt-btn').addEventListener('click', () => {
-                sessionStorage.setItem(`${currentPromptType}Prompt`, promptTextarea.value);
-                promptModal.hide();
+            document.getElementById('save-prompt-btn').addEventListener('click', async () => {
+                const newPrompt = promptTextarea.value;
+                if (currentPromptType === 'plan') {
+                    userPlanPrompt = newPrompt;
+                } else {
+                    userReportPrompt = newPrompt;
+                }
+
+                try {
+                    await authedFetch('/.netlify/functions/update-user-prompts', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ plan_prompt: userPlanPrompt, report_prompt: userReportPrompt })
+                    });
+                    promptModal.hide();
+                } catch (error) {
+                    alert('Erro ao salvar o prompt.');
+                }
             });
 
             const outputPlanner = document.getElementById('output-planner');
