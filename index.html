@@ -953,8 +953,8 @@ Responda diretamente com o HTML para ser inserido em uma div. Use tags como <h3>
 
                 const audioToUpload = recordedAudioFile || audioFile;
 
-                if (!title || !audioToUpload) {
-                    alert('Título e um áudio (gravado ou enviado) são obrigatórios.');
+                if (!audioToUpload) {
+                    alert('Um áudio (gravado ou enviado) é obrigatório.');
                     return;
                 }
 
@@ -995,8 +995,8 @@ Responda diretamente com o HTML para ser inserido em uma div. Use tags como <h3>
                 const textContent = document.getElementById('text-content').value;
                 const type = getActiveTabType();
 
-                if (!title || !textContent) {
-                    alert('Título e conteúdo são obrigatórios.');
+                if (!textContent) {
+                    alert('O conteúdo do texto é obrigatório.');
                     return;
                 }
 
