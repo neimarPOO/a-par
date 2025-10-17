@@ -105,7 +105,7 @@
         }
 
         [data-theme="dark"] .icon-btn {
-            color: #f0f0f0;
+            color: #8a2be2;
         }
 
         .card { border: none; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); background-color: var(--card-bg); color: var(--dark); border-radius: 1rem; transition: all 0.3s ease; } /* Cards com fundo branco e arredondados */
@@ -317,6 +317,7 @@
                     </div>
                     <div class="mt-4 text-center">
                         <button id="generate-plan-btn" class="btn btn-primary"><i class="bi bi-magic me-2"></i>Criar Plano de Aula</button>
+                        <button class="btn btn-secondary mt-2" data-bs-toggle="modal" data-bs-target="#prompt-modal" data-type="plan">Aprimorar Prompt</button>
                     </div>
                 </div>
 
@@ -354,6 +355,7 @@
                     </div>
                     <div class="mt-4 text-center">
                         <button id="generate-report-btn" class="btn btn-primary"><i class="bi bi-file-earmark-text me-2"></i>Compilar Relatório</button>
+                        <button class="btn btn-secondary mt-2" data-bs-toggle="modal" data-bs-target="#prompt-modal" data-type="report">Aprimorar Prompt</button>
                     </div>
                 </div>
                 <div id="output-reporter"></div>
@@ -365,6 +367,25 @@
                 </div>
             </div>
         </main>
+
+        <!-- Modal de Edição de Prompt -->
+        <div class="modal fade" id="prompt-modal" tabindex="-1" aria-labelledby="prompt-modal-label" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="prompt-modal-label">Aprimorar Prompt</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <textarea id="prompt-textarea" class="form-control" rows="10"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" id="save-prompt-btn" class="btn btn-primary">Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Modal de Gravação -->
         <div class="modal fade" id="recordModal" tabindex="-1" aria-labelledby="recordModalLabel" aria-hidden="true">
@@ -713,6 +734,39 @@
             }
         }
 
+        async function handleSaveNewItem(type, content) {
+            const title = document.getElementById(`${type}-title`).value;
+            const selectedIds = Array.from(document.querySelectorAll(`#${type === 'plan' ? 'planner' : 'reporter'}-transcription-list-container input[type="checkbox"]:checked`)).map(cb => cb.value);
+            const participantes = type === 'report' ? document.getElementById('participantes').value : null;
+
+            if (!title) {
+                alert(`Por favor, forneça um título para o ${type === 'plan' ? 'plano' : 'relatório'}.`);
+                return;
+            }
+
+            try {
+                const response = await authedFetch(`/.netlify/functions/create-${type}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, content, transcriptionIds: selectedIds, participantes })
+                });
+
+                if (!response.ok) {
+                    const result = await response.json();
+                    throw new Error(result.error);
+                }
+
+                document.getElementById(`output-${type === 'plan' ? 'planner' : 'reporter'}`).innerHTML = '';
+                if (type === 'plan') {
+                    loadSavedPlans();
+                } else {
+                    loadSavedReports();
+                }
+            } catch (error) {
+                alert(`Erro ao salvar o ${type === 'plan' ? 'plano' : 'relatório'}: ${error.message}`);
+            }
+        }
+
         async function handleSaveEditedItem() {
             const { id, type } = currentEditingInfo;
             const content = savedItemModalBody.innerHTML;
@@ -741,6 +795,28 @@
                 return 'reporter';
             }
         }
+
+        const lessonPlanPrompt = `
+Você é um assistente especializado em planejamento educacional. Sua função é ajudar educadores a criar planos de aula eficientes a partir de suas anotações.
+Quando o usuário fornecer o conteúdo de suas anotações (transcrições de áudio ou texto), crie um plano de aula estruturado contendo:
+1. **Resumo Executivo** (2-3 linhas sobre a aula)
+2. **Distribuição Temporal Sugerida** (Abertura/Aquecimento, Desenvolvimento, Atividades práticas, Fechamento/Síntese)
+3. **Cronograma Detalhado** com colunas para "Atividade", "Tempo Estimado", "Materiais Necessários", "Método Pedagógico", e "Objetivo da Atividade".
+4. **Pontos de Flexibilidade** (onde pode ajustar o tempo)
+5. **Backup de Atividades** (caso sobre ou falte tempo)
+Equilibre teoria e prática, considere diferentes estilos de aprendizagem e mantenha o engajamento.
+Responda diretamente com o HTML para ser inserido em uma div. Use tags como <h3>, <ul>, <li>, <p>, <strong> e crie uma tabela para o cronograma detalhado.
+`;
+
+        const reportPrompt = `
+Você é um assistente especializado em documentação pedagógica. Sua função é ajudar educadores a criar relatórios detalhados a partir de suas anotações de aula.
+Quando o usuário fornecer o conteúdo de suas anotações (transcrições de áudio ou texto), crie um relatório estruturado contendo:
+1. **Sumário da Aula** (principais tópicos e atividades realizadas)
+2. **Observações Gerais** (comportamento da turma, engajamento, etc.)
+3. **Análise Pedagógica** (reflexão sobre a eficácia das estratégias utilizadas)
+4. **Recomendações** (sugestões para aulas futuras)
+Responda diretamente com o HTML para ser inserido em uma div. Use tags como <h3>, <ul>, <li>, <p>, <strong>.
+`;
 
         document.addEventListener('DOMContentLoaded', () => {
             // A lógica de verificação de sessão agora é tratada pelo onAuthStateChange
@@ -801,11 +877,13 @@
                     return;
                 }
 
+                const prompt = sessionStorage.getItem('planPrompt') || lessonPlanPrompt;
+
                 try {
                     const response = await authedFetch('/.netlify/functions/generate-plan', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ transcriptionIds: selectedIds, title })
+                        body: JSON.stringify({ transcriptionIds: selectedIds, title, prompt })
                     });
 
                     if (!response.ok) {
@@ -814,7 +892,8 @@
                     }
 
                     const plan = await response.text();
-                    document.getElementById('output-planner').innerHTML = `<div class="output-section"><div contenteditable="true">${plan}</div><button class="btn btn-primary mt-3">Salvar Alterações</button></div>`;
+                    document.getElementById('output-planner').innerHTML = `<div class="output-section"><div contenteditable="true">${plan}</div><button class="btn btn-primary mt-3 save-new-item-btn" data-type="plan">Salvar Alterações</button></div>`;
+                    document.getElementById('plan-title').value = '';
                     loadSavedPlans(); // Recarrega a lista
                 } catch (error) {
                     alert(`Erro ao gerar plano de aula: ${error.message}`);
@@ -835,11 +914,13 @@
                     return;
                 }
 
+                const prompt = sessionStorage.getItem('reportPrompt') || reportPrompt;
+
                 try {
                     const response = await authedFetch('/.netlify/functions/generate-report', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ transcriptionIds: selectedIds, title, participantes })
+                        body: JSON.stringify({ transcriptionIds: selectedIds, title, participantes, prompt })
                     });
 
                     if (!response.ok) {
@@ -848,7 +929,8 @@
                     }
 
                     const report = await response.text();
-                    document.getElementById('output-reporter').innerHTML = `<div class="output-section"><div contenteditable="true">${report}</div><button class="btn btn-primary mt-3">Salvar Alterações</button></div>`;
+                    document.getElementById('output-reporter').innerHTML = `<div class="output-section"><div contenteditable="true">${report}</div><button class="btn btn-primary mt-3 save-new-item-btn" data-type="report">Salvar Alterações</button></div>`;
+                    document.getElementById('report-title').value = '';
                     loadSavedReports(); // Recarrega a lista
                 } catch (error) {
                     alert(`Erro ao gerar relatório: ${error.message}`);
@@ -1037,6 +1119,37 @@
             });
 
             document.getElementById('save-edited-item-btn').addEventListener('click', handleSaveEditedItem);
+
+            const promptModal = new bootstrap.Modal(document.getElementById('prompt-modal'));
+            const promptTextarea = document.getElementById('prompt-textarea');
+            let currentPromptType;
+
+            document.querySelectorAll('[data-bs-target="#prompt-modal"]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentPromptType = btn.dataset.type;
+                    const currentPrompt = sessionStorage.getItem(`${currentPromptType}Prompt`) || (currentPromptType === 'plan' ? lessonPlanPrompt : reportPrompt);
+                    promptTextarea.value = currentPrompt;
+                });
+            });
+
+            document.getElementById('save-prompt-btn').addEventListener('click', () => {
+                sessionStorage.setItem(`${currentPromptType}Prompt`, promptTextarea.value);
+                promptModal.hide();
+            });
+
+            const outputPlanner = document.getElementById('output-planner');
+            const outputReporter = document.getElementById('output-reporter');
+
+            [outputPlanner, outputReporter].forEach(outputDiv => {
+                outputDiv.addEventListener('click', async (e) => {
+                    const saveBtn = e.target.closest('.save-new-item-btn');
+                    if (saveBtn) {
+                        const type = saveBtn.dataset.type;
+                        const content = saveBtn.previousElementSibling.innerHTML;
+                        await handleSaveNewItem(type, content);
+                    }
+                });
+            });
 
         });
     </script>
