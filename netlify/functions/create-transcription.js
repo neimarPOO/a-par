@@ -2,6 +2,9 @@ const axios = require('axios');
 const Busboy = require('busboy');
 const { supabaseAdmin, createSupabaseClient } = require('../supabaseClient');
 
+const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY;
+const assemblyApiUrl = "https://api.assemblyai.com/v2";
+
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions";
 

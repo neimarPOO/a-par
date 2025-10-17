@@ -1,6 +1,1 @@
-Em "2. Crie um Plano de Aula a Partir de Suas Anotações", "2. Compilar Relatório a Partir de Transcrições", "3. Relatórios Salvos", deixe os ícones dos 
-documentos salvos visíveis no modo escuro(eles estão ocultos no fundo branco, deixe-os roxos);
-- quando o usuário criar um plano de aula, quando ele clicar no botão "Salvar alterações", o modal do plano de aula deve ser fechado e o plano deve aparecer salvo em "3. Planos de Aula Salvos"
-com todas asopções de compartilhamento e edição;
-- Abaixo dos botões "Criar plano de aul" e "Compilar relatório" implemente um botão "Aprimorar Prompt" onde o usuário possa melhorar os prompts que criam os planos de aula e os 
-relatórios, cada um na sua respectiva aba. O prompts editados devem persistir apenas na sessão do usuário.
+Orientações de Codificação para Gemini: Priorize código limpo, seguro e sustentável. Evite: Soluções apressadas ou perigosas (ex: npm audit fix --force, git commit --no-verify, --skip-tests, --force, --disable-security-checks). Reescritas completas em frameworks obscuros. Uso de eval() ou outras "mágicas" questionáveis. Logs inadequados para depuração. Siga: Boas práticas de engenharia de software. Códigos que passem nos testes. Tratamento de problemas de forma robusta e duradoura. Documentação concisa e útil. Lembre-se: Não gere débito técnico. Evite código que precise de refatoração imediata. Garanta a sustentabilidade do código a longo prazo. Observação: print() é um método de depuração aceitável.
