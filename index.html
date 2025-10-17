@@ -237,7 +237,7 @@
         <div class="container-lg">
             <div class="d-flex justify-content-between align-items-center" style="background-color: var(--navbar-bg); padding: 10px 20px; border-radius: 15px; backdrop-filter: blur(10px);">
                 <a class="navbar-brand" href="#">
-                    <img src="logo_apar.png" alt="Logo A-par" style="max-height: 70px;">
+                    <img src="logo_apar.png" alt="Logo A-par" style="max-height: 90px;">
                 </a>
                 <div class="d-flex align-items-center">
                     <button id="theme-toggle-btn" class="theme-toggle me-3"><i class="bi bi-sun-fill"></i></button>
@@ -757,6 +757,7 @@
                 }
 
                 document.getElementById(`output-${type === 'plan' ? 'planner' : 'reporter'}`).innerHTML = '';
+                document.getElementById(`${type}-title`).value = '';
                 if (type === 'plan') {
                     loadSavedPlans();
                 } else {
@@ -893,7 +894,6 @@ Responda diretamente com o HTML para ser inserido em uma div. Use tags como <h3>
 
                     const plan = await response.text();
                     document.getElementById('output-planner').innerHTML = `<div class="output-section"><div contenteditable="true">${plan}</div><button class="btn btn-primary mt-3 save-new-item-btn" data-type="plan">Salvar Alterações</button></div>`;
-                    document.getElementById('plan-title').value = '';
                     loadSavedPlans(); // Recarrega a lista
                 } catch (error) {
                     alert(`Erro ao gerar plano de aula: ${error.message}`);
@@ -930,7 +930,6 @@ Responda diretamente com o HTML para ser inserido em uma div. Use tags como <h3>
 
                     const report = await response.text();
                     document.getElementById('output-reporter').innerHTML = `<div class="output-section"><div contenteditable="true">${report}</div><button class="btn btn-primary mt-3 save-new-item-btn" data-type="report">Salvar Alterações</button></div>`;
-                    document.getElementById('report-title').value = '';
                     loadSavedReports(); // Recarrega a lista
                 } catch (error) {
                     alert(`Erro ao gerar relatório: ${error.message}`);
