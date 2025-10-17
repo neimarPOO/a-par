@@ -29,7 +29,7 @@ exports.handler = async (event) => {
             return { statusCode: 401, body: JSON.stringify({ error: 'Invalid token' }) };
         }
 
-        const { transcriptionIds, infoAula, participantes, title } = JSON.parse(event.body);
+        const { transcriptionIds, infoAula, participantes, title, prompt } = JSON.parse(event.body);
 
         if (!transcriptionIds || transcriptionIds.length === 0) {
             return { statusCode: 400, body: '<p style=\"color: red;\">Pelo menos uma transcrição deve ser selecionada.</p>' };
@@ -62,7 +62,7 @@ exports.handler = async (event) => {
         const openRouterResponse = await axios.post(openRouterUrl, {
             model: "openai/gpt-oss-20b:free",
             messages: [
-                { role: "system", content: reportGeneratorPrompt },
+                { role: "system", content: prompt || reportGeneratorPrompt },
                 { role: "user", content: finalPrompt }
             ],
             max_tokens: 2048

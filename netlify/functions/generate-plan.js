@@ -33,7 +33,7 @@ exports.handler = async (event) => {
             return { statusCode: 401, body: JSON.stringify({ error: 'Invalid token' }) };
         }
 
-        const { transcriptionIds, title } = JSON.parse(event.body);
+        const { transcriptionIds, title, prompt } = JSON.parse(event.body);
 
         if (!transcriptionIds || transcriptionIds.length === 0) {
             return { statusCode: 400, body: '<p style="color: red;">Erro: Nenhuma anotação selecionada.</p>' };
@@ -58,7 +58,7 @@ exports.handler = async (event) => {
         const response = await axios.post(openRouterUrl, {
             model: "openai/gpt-oss-20b:free",
             messages: [
-                { role: "system", content: lessonPlanPrompt },
+                { role: "system", content: prompt || lessonPlanPrompt },
                 { role: "user", content: userInput }
             ],
             max_tokens: 2048
