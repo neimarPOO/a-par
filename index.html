@@ -769,21 +769,26 @@
         }
 
         async function handleSaveEditedItem() {
+            console.log('handleSaveEditedItem called');
             const { id, type } = currentEditingInfo;
             const content = savedItemModalBody.innerHTML;
+            const url = `/.netlify/functions/update-${type}`;
+            console.log('Saving edited item:', { id, type, content, url });
 
             try {
-                const response = await authedFetch(`/.netlify/functions/update-${type}` , {
+                const response = await authedFetch(url , {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id, content })
                 });
+                console.log('Response from update function:', response);
                 if (!response.ok) {
                     const result = await response.json();
                     throw new Error(result.error);
                 }
                 savedItemModal.hide();
             } catch (error) {
+                console.error('Error saving changes:', error);
                 alert(`Erro ao salvar alterações: ${error.message}`);
             }
         }
