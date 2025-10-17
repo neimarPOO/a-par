@@ -78,30 +78,5 @@ if (loginForm) {
     });
 }
 
-// --- Verificação de Sessão (para index.html) ---
-async function checkSession() {
-    const { data: { session }, error } = await _supabase.auth.getSession();
 
-    if (error || !session) {
-        // Não redireciona mais, apenas informa que não há sessão
-        return null;
-    } else {
-        // Sessão válida, exibe informações do usuário
-        const user = session.user;
-        const userAvatar = document.getElementById('user-avatar');
-        const userEmail = document.getElementById('user-email');
-
-        if (user) {
-            if (user.user_metadata && user.user_metadata.avatar_url) {
-                userAvatar.src = user.user_metadata.avatar_url;
-                userAvatar.style.display = 'block';
-            }
-            if (user.email) {
-                userEmail.textContent = user.email;
-                userEmail.style.display = 'block';
-            }
-        }
-        return session;
-    }
-}
 

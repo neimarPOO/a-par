@@ -413,33 +413,33 @@
     <script src="auth.js"></script>
     <script>
         // --- Lógica de Autenticação e Carregamento de Dados ---
-
-        const handleAuthChange = async (event, session) => {
+        _supabase.auth.onAuthStateChange((event, session) => {
             console.log(`Auth event: ${event}`, session);
             if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-                if (session && session.user) {
-                    console.log('User session found, updating UI and loading data.', session.user);
-                    await updateUserUI(session.user);
+                if (session) {
+                    // Se a sessão existe, continua o carregamento
+                    console.log('Active session found, updating UI and loading data.', session.user);
+                    updateUserUI(session.user);
                     loadTranscriptions(plannerTranscriptionListContainer, 'planner');
                     loadTranscriptions(reporterTranscriptionListContainer, 'reporter');
                     loadSavedPlans();
                     loadSavedReports();
                 } else {
-                    console.log('No user session, redirecting to login.');
+                    // Se o evento é SIGNED_IN mas a sessão é nula, algo está errado.
+                    // Redireciona para o login para segurança.
+                    console.log('Session is null despite SIGNED_IN event, redirecting to login.');
                     window.location.href = 'login.html';
                 }
             } else if (event === 'SIGNED_OUT') {
                 console.log('User signed out, redirecting to login.');
+                sessionStorage.clear(); // Limpa o cache da sessão
                 window.location.href = 'login.html';
             }
-        };
-
-        _supabase.auth.onAuthStateChange(handleAuthChange);
+        });
 
         async function updateUserUI(user) {
             console.log('Updating UI for user:', user);
             const userAvatar = document.getElementById('user-avatar');
-            const userEmail = document.getElementById('user-email');
             const logoutBtn = document.getElementById('logout-btn');
 
             if (user) {
@@ -447,14 +447,9 @@
                     userAvatar.src = user.user_metadata.avatar_url;
                     userAvatar.style.display = 'block';
                 }
-                if (user.email) {
-                    userEmail.textContent = user.email;
-                    userEmail.style.display = 'block';
-                }
                 logoutBtn.style.display = 'block';
             } else {
                 userAvatar.style.display = 'none';
-                userEmail.style.display = 'none';
                 logoutBtn.style.display = 'none';
             }
         }
@@ -680,6 +675,9 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // A lógica de verificação de sessão agora é tratada pelo onAuthStateChange
+            // checkSessionAndLoadData();
+
             let mediaRecorder;
             let audioChunks = [];
             let recordedAudioFile;
