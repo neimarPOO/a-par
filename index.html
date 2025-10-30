@@ -857,17 +857,36 @@ Responda diretamente com o HTML para ser inserido em uma div. Use tags como <h3>
             let mediaRecorder;
             let audioChunks = [];
             let recordedAudioFile;
+            let mediaStream; 
 
             const recordBtn = document.getElementById('record-btn');
             const stopBtn = document.getElementById('stop-btn');
             const recordingStatus = document.getElementById('recording-status');
             const generatePlanBtn = document.getElementById('generate-plan-btn');
             const generateReportBtn = document.getElementById('generate-report-btn');
+            const recordModal = document.getElementById('recordModal');
+
+
+            function stopRecording() {
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                }
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(track => track.stop());
+                }
+                recordingStatus.innerHTML = 'Gravação finalizada.';
+                recordBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+
+            recordModal.addEventListener('hidden.bs.modal', () => {
+                stopRecording();
+            });
 
             recordBtn.addEventListener('click', async () => {
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
+                    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(mediaStream);
                     mediaRecorder.start();
 
                     recordBtn.disabled = true;
@@ -882,9 +901,6 @@ Responda diretamente com o HTML para ser inserido em uma div. Use tags como <h3>
                         const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                         recordedAudioFile = new File([audioBlob], 'recording.wav', { type: 'audio/wav' });
                         audioChunks = [];
-                        recordBtn.disabled = false;
-                        stopBtn.disabled = true;
-                        recordingStatus.innerHTML = 'Gravação finalizada.';
                     });
                 } catch (error) {
                     console.error('Error accessing microphone:', error);
@@ -893,7 +909,7 @@ Responda diretamente com o HTML para ser inserido em uma div. Use tags como <h3>
             });
 
             stopBtn.addEventListener('click', () => {
-                mediaRecorder.stop();
+                stopRecording();
             });
 
             generatePlanBtn.addEventListener('click', async () => {
